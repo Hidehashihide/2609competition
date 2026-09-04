@@ -866,14 +866,24 @@ async function callLLM(userPrompt, schema, maxTokens){
     headers = { "content-type":"application/json" };
     body = { systemInstruction:{parts:[{text:SYSTEM_PROMPT}]},
       contents:[{role:"user", parts:[{text:userPrompt}]}],
-      generationConfig:{ responseMimeType:"application/json", responseSchema:stripSchema(schema), maxOutputTokens:maxTokens } };
-    pick = j => (j.candidates?.[0]?.content?.parts||[]).map(p=>p.text).join("");
+      // Gemini 2.5 系は思考トークンも maxOutputTokens を消費するため、上限を広めに確保する
+      generationConfig:{ responseMimeType:"application/json", responseSchema:stripSchema(schema), maxOutputTokens:maxTokens*3 } };
+    pick = j => {
+      const c = j.candidates?.[0];
+      if(c && c.finishReason === "MAX_TOKENS") throw new Error("出力が上限に達しました。設定でモデルを変えるか、記録の日数を減らしてお試しください。");
+      return (c?.content?.parts||[]).map(p=>p.text).join("");
+    };
   }
 
   const res = await fetch(url, {method:"POST", headers, body:JSON.stringify(body)});
   if(!res.ok){
     let d=""; try{ d = (await res.json()).error?.message || ""; }catch(e){ try{ d = await res.text(); }catch(e2){} }
-    throw new Error(`API エラー ${res.status}　${String(d).slice(0,220)}`);
+    const hint =
+      (res.status===401 || res.status===403) ? "APIキーが正しくないか、権限がありません。⚙︎ から入力し直してください。" :
+      (res.status===404) ? "モデル名が見つかりません。⚙︎ のモデル欄をご確認ください。" :
+      (res.status===429) ? "レート上限に達しました。少し待ってからもう一度お試しください。" :
+      (res.status>=500) ? "プロバイダ側で一時的な障害が起きています。少し待ってからお試しください。" : "";
+    throw new Error(`API エラー ${res.status}${hint ? "　"+hint : ""}\n${String(d).slice(0,200)}`);
   }
   return parseJSON(pick(await res.json()));
 }

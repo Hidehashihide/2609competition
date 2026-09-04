@@ -210,6 +210,23 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.5}
 .sw-e{font-size:13.5px;color:var(--text-dim);line-height:1.8}
 .sw-k{font-size:13px;color:var(--muted);line-height:1.75;margin-top:7px;padding-top:7px;border-top:1px dashed var(--line)}
 
+/* 物差し ⇄ 実際に効いたもの の対比 */
+.gap-grid{display:flex;gap:11px;align-items:stretch;margin-top:14px;flex-wrap:wrap}
+.gap-col{flex:1;min-width:150px;border-radius:13px;padding:14px 15px;border:1px solid var(--line)}
+.gap-col.yard{border-color:rgba(201,139,139,.34);background:rgba(201,139,139,.075)}
+.gap-col.real{border-color:rgba(127,179,168,.34);background:rgba(127,179,168,.075)}
+.gap-col h5{margin:0 0 8px;font-size:10.5px;letter-spacing:.13em;font-weight:700}
+.gap-col.yard h5{color:var(--rose)}
+.gap-col.real h5{color:var(--teal)}
+.gap-col p{margin:0;font-size:14.5px;line-height:1.78;color:var(--text)}
+.gap-vs{flex:none;align-self:center;color:var(--muted);font-size:15px;font-weight:700;letter-spacing:.05em}
+.gap-q{margin:9px 0 0;font-size:12.5px;line-height:1.72;color:var(--text-dim)}
+.gap-mismatch{margin-top:14px;border-radius:13px;padding:15px 17px;
+  border:1px solid rgba(232,177,122,.3);background:rgba(232,177,122,.085)}
+.gap-mismatch h4{margin:0 0 7px;font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700}
+.gap-mismatch p{margin:0;font-size:15.5px;line-height:1.85;color:var(--text)}
+@media(max-width:430px){ .gap-vs{width:100%;text-align:center;padding:2px 0} }
+
 .arrowline{display:flex;align-items:center;gap:11px;margin-top:12px;flex-wrap:wrap}
 .arrowline .box{
   flex:1;min-width:130px;border:1px solid var(--line);border-radius:11px;padding:11px 13px;
@@ -560,7 +577,12 @@ function computeStats(list){
     best: list.filter(e=>e.mind===Math.max(...mind)).map(e=>fmtShort(e.date)),
     worst:list.filter(e=>e.mind===Math.min(...mind)).map(e=>fmtShort(e.date)),
     plus: tagEffect(TAGS_PLUS),
-    minus:tagEffect(TAGS_MINUS)
+    minus:tagEffect(TAGS_MINUS),
+    // 本人が自分を測っている言葉／本人自身の気づきを、日付つきで束ねる
+    judgments: list.filter(e => e.ai?.self_judgment).map(e => ({d:fmtShort(e.date), q:e.ai.self_judgment})),
+    insights:  list.filter(e => e.ai?.self_insight ).map(e => ({d:fmtShort(e.date), q:e.ai.self_insight })),
+    // 取り込みで推定した日が混じっているか（数値の確からしさを正直に伝えるため）
+    estimated: list.filter(e => e.estimated).map(e => fmtShort(e.date))
   };
 }
 
@@ -665,6 +687,17 @@ ${prev}
 
   "micro_action": 明日、5分以内・その場でできる小さな一手をひとつだけ。思いつかなければ空文字。
       習慣化や努力の押し付けはしない。今日の記録から自然に出てくることに限る。
+
+  ── ここから下の2つは「生成」ではなく「抽出」です。解釈を加えず、書かれていなければ空文字にすること。
+
+  "self_judgment": 本人が〈自分自身を評価・採点している〉言い回しを、原文のまま最大40字で抜き出す。
+      該当するのは、自分の価値・成長・時間の使い方・出来の良し悪しを測っている表現。
+      例：「〜できているのか分からない」「〜すべきだった」「〜を無駄にしてないか」といった形。
+      出来事や他人への評価は含めない。なければ空文字。
+
+  "self_insight": 本人が〈自分で何かに気づいている〉一節を、原文のまま最大50字で抜き出す。
+      「〜と気づいた」「〜だったな」「〜を忘れてた」のように、本人自身の発見が書かれている箇所。
+      あなたの気づき（notice欄）とは別物。本人が書いていなければ必ず空文字にする。
 }`;
 }
 const sign = n => n>0 ? `+${n}` : (n<0 ? `${n}` : "±0");
@@ -703,8 +736,16 @@ ${eff(s.plus,"効いた")}
 ■「削られた」タグの効き目
 ${eff(s.minus,"削られた")}
 
+■ 本人が〈自分自身を評価している〉言葉（各日の記録から原文のまま抽出したもの）
+${s.judgments.length ? s.judgments.map(x=>`- ${x.d}「${x.q}」`).join("\n") : "（抽出されていません）"}
+
+■ 本人が〈自分で気づいた〉と書いている言葉（同上）
+${s.insights.length ? s.insights.map(x=>`- ${x.d}「${x.q}」`).join("\n") : "（抽出されていません）"}
+
 ※数値はあくまで根拠のひとつです。数値と本人の言葉が食い違う場合は、本人の言葉を優先し、
-　その食い違い自体を見つけたこととして書いてください。
+　その食い違い自体を見つけたこととして書いてください。${s.estimated.length ? `
+※ ${s.estimated.join("・")} は書きためた日記から取り込んだ日で、からだ・こころの数値とタグは
+　本文からの推定値です。数値は傾向として扱い、断定の根拠にするときは必ず本人の言葉を添えてください。` : ""}
 
 # 日ごとの記録（全文）
 
@@ -717,29 +758,39 @@ ${days}
       NG例「充実と疲労が入り混じった一週間」…誰の週にも貼れる。
       良い見出しは、読んだ本人が「たしかに今週はそれだった」と言えるもの。
 
+  "the_gap": この期間でいちばん重要な出力。ひとつだけ。
+      〈本人が自分を測っている物差し〉と〈記録の上で実際に本人を回復させていたもの〉のズレを示す。
+      { "your_yardstick", "yardstick_quotes", "what_actually_worked", "the_mismatch" }
+      your_yardstick … 本人が自分を評価するときに使っている基準そのものを1文で名指しする。
+          上の「自分自身を評価している言葉」の抽出結果を根拠にする。
+          NG例「自分に厳しい人」…性格の断定。基準ではなく人物を評価している。
+          良い書き方は、何をものさしにして自分を採点しているかを言い当てるもの。
+      yardstick_quotes … その根拠になる本人の言葉を、日付つきで2つ以上（原文のまま・配列）。
+          例の形式：「6/3『……』」
+      what_actually_worked … 数値の上で実際に調子を戻していたものを1文。数値を必ず含める。
+      the_mismatch … その物差しと、実際に効いていたものが、どうすれ違っているかを2〜3文。
+          効いていたものを本人が「自分の成果」として数えていないなら、その事実を本人の言葉で示す。
+          性格や原因を断定せず、記録から見えることとして書く。
+          この欄が、単なる要約とこのアプリの差になる。最も注意深く書くこと。
+
+  "fading_insight": 本人が自分で気づいて書いたのに、その後の記録では触れられなくなっている
+      気づきをひとつ。{ "quote", "written_on", "what_happened_after", "question" }。
+      quote … 本人が書いた気づきの一節を原文のまま（上の抽出結果から選ぶ）。
+      written_on … その日付（例「6/5」）。
+      what_happened_after … その後の日の記録で、その気づきがどう扱われているかを、
+          日付を挙げて1〜2文。触れられていない、別の言葉に置き換わっている、など。
+      question … その気づきを今週もう一度使うための問いをひとつ。
+      該当が見当たらなければ、quote を空文字にする（無理に作らない）。
+
   "recovery_switches": 「回復スイッチ」＝この人の調子を実際に戻していたものを、最大3つ。配列。
       各要素は { "name", "evidence", "how_to_keep" }。
-      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする（例「ジムで頭の霧を晴らす時間」）。
+      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする。
       evidence … 必ず〈数値〉と〈本人の言葉の直接引用〉の両方を入れる。1〜2文。
           OK例（別人の記録より）「『ちゃんと寝た』4日のこころ平均は3.80、そうでない日は2.40。5/12に『朝から頭が回った』と書かれています」
           NG例「睡眠はメンタルに良い影響を与えます」…一般論であり、この人の記録を根拠にしていない。
       how_to_keep … 増やす提案ではなく、「今あるものをどう落とさないか」を1文で。
 
   "drains": 調子を削っていたものを最大2つ。配列。各要素は { "name", "evidence" }。evidenceは同上の条件。
-
-  "blindspot": この期間でいちばん重要な出力。ひとつだけ。
-      〈記録の上では明らかに効いているのに、本人が自分の成果として数えていないもの〉を書く。
-      判定手順：(1)本人が繰り返し価値を認めているもの（＝自覚済み）を除外する。
-                (2)残ったもののうち、こころのスコアが高い日に共通して現れている要素を探す。
-                (3)その要素について本人が書いた言葉を引用し、本人がそれを「自分の手柄として数えていない」ことを示す。
-      すでに本人が自覚しているものを書いてはいけない（それでは気づきにならない）。2〜4文。
-
-  "recurring_pattern": 期間中に2回以上、形を変えて現れる考え方のクセをひとつ。
-      { "observation", "quotes", "reframe_question" }。
-      observation … 「〜という言い方が、6/3と6/7に出ています」のように、必ず日付で根拠を示す。1〜2文。
-      quotes … 原文からの直接引用を2つ以上（配列・改変禁止）。
-      reframe_question … そのクセを否定も矯正もせず、別の角度から見るための問いをひとつ。
-          NG例「もっと自分を認めてあげましょう」…助言であり問いではない。
 
   "change": 期間のはじめと終わりで動いたものをひとつ。{ "from", "to", "what_moved" }。
       from と to は原則として本人の言葉の直接引用にする（どちらも改変禁止）。
@@ -773,6 +824,11 @@ function buildImportPrompt(raw, year){
 - headline は、その日に付ける12〜22字の体言止めの見出し。本人の言葉を素材にする。
   「充実した一日」のような、誰の日にも貼れる見出しは禁止。
 - quote は、その日の本文から一字一句そのまま抜き出した最大40字の一節。
+- self_judgment は、本人が〈自分自身を評価・採点している〉言い回しを原文のまま最大40字で抜き出す
+  （自分の価値・成長・時間の使い方の良し悪しを測っている表現。なければ空文字）。
+- self_insight は、本人が〈自分で何かに気づいている〉一節を原文のまま最大50字で抜き出す
+  （「〜と気づいた」「〜だったな」「〜を忘れてた」等。なければ空文字）。
+  この2つは解釈ではなく抽出です。書かれていなければ必ず空文字にすること。
 
 # 日記
 """
@@ -781,7 +837,8 @@ ${raw}
 
 # 出力
 { "days": [ { "date":"YYYY-MM-DD", "weekday":"月", "text":"原文", "body":1-5, "mind":1-5,
-              "plus":[...], "minus":[...], "headline":"...", "quote":"..." } ] }
+              "plus":[...], "minus":[...], "headline":"...", "quote":"...",
+              "self_judgment":"...", "self_insight":"..." } ] }
 日付の古い順に並べること。JSONのみを出力すること。`;
 }
 
@@ -790,24 +847,31 @@ const S = (props, req) => ({type:"object", properties:props, required:req, addit
 const str = {type:"string"};
 const SCHEMA_DAILY = S({
   headline:str, facts:str, feeling:str, quote:str,
-  notice:str, credit:str, tomorrow_question:str, micro_action:str
-}, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action"]);
+  notice:str, credit:str, tomorrow_question:str, micro_action:str,
+  self_judgment:str, self_insight:str
+}, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action",
+    "self_judgment","self_insight"]);
 
 const SCHEMA_WEEKLY = S({
   week_headline:str,
+  the_gap:S({your_yardstick:str, yardstick_quotes:{type:"array",items:str},
+             what_actually_worked:str, the_mismatch:str},
+            ["your_yardstick","yardstick_quotes","what_actually_worked","the_mismatch"]),
+  fading_insight:S({quote:str, written_on:str, what_happened_after:str, question:str},
+                   ["quote","written_on","what_happened_after","question"]),
   recovery_switches:{type:"array", items:S({name:str,evidence:str,how_to_keep:str},["name","evidence","how_to_keep"])},
   drains:{type:"array", items:S({name:str,evidence:str},["name","evidence"])},
-  blindspot:str,
-  recurring_pattern:S({observation:str, quotes:{type:"array",items:str}, reframe_question:str},["observation","quotes","reframe_question"]),
   change:S({from:str,to:str,what_moved:str},["from","to","what_moved"]),
   next_week_experiment:S({what:str,why:str,how_to_check:str},["what","why","how_to_check"])
-}, ["week_headline","recovery_switches","drains","blindspot","recurring_pattern","change","next_week_experiment"]);
+}, ["week_headline","the_gap","fading_insight","recovery_switches","drains","change","next_week_experiment"]);
 
 const SCHEMA_IMPORT = S({
   days:{type:"array", items:S({
     date:str, weekday:str, text:str, body:{type:"integer"}, mind:{type:"integer"},
-    plus:{type:"array",items:str}, minus:{type:"array",items:str}, headline:str, quote:str
-  },["date","weekday","text","body","mind","plus","minus","headline","quote"])}
+    plus:{type:"array",items:str}, minus:{type:"array",items:str}, headline:str, quote:str,
+    self_judgment:str, self_insight:str
+  },["date","weekday","text","body","mind","plus","minus","headline","quote",
+     "self_judgment","self_insight"])}
 }, ["days"]);
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1092,13 +1156,32 @@ function renderWeek(w, list, s){
     </div>
 
     <div class="card">
-      <p class="eyebrow">見落としていたもの</p>
-      <div class="pill-note violet" style="margin-top:0">
-        <h4>気づいていない回復スイッチ</h4>
-        <p>${esc(w.blindspot||"")}</p>
+      <p class="eyebrow">あなたの物差しと、実際に効いていたもの</p>
+      <div class="gap-grid">
+        <div class="gap-col yard">
+          <h5>自分を測っている基準</h5>
+          <p>${esc(w.the_gap?.your_yardstick||"")}</p>
+          ${(w.the_gap?.yardstick_quotes||[]).map(q=>`<p class="gap-q">${esc(q)}</p>`).join("")}
+        </div>
+        <span class="gap-vs">⇄</span>
+        <div class="gap-col real">
+          <h5>実際に効いていたもの</h5>
+          <p>${esc(w.the_gap?.what_actually_worked||"")}</p>
+        </div>
       </div>
-      <p class="tiny mt-s">記録の上では効いているのに、自分の手柄として数えられていないものです。</p>
+      <div class="gap-mismatch">
+        <h4>このズレについて</h4>
+        <p>${esc(w.the_gap?.the_mismatch||"")}</p>
+      </div>
     </div>
+
+    ${w.fading_insight?.quote ? `<div class="card">
+      <p class="eyebrow">消えかけている、あなた自身の気づき</p>
+      <blockquote class="quote" style="font-size:16.5px">「${esc(w.fading_insight.quote)}」</blockquote>
+      <p class="tiny" style="margin-top:8px">${esc(w.fading_insight.written_on)} の記録より</p>
+      <p class="sub mt">${esc(w.fading_insight.what_happened_after)}</p>
+      <div class="pill-note violet"><h4>もう一度使うための問い</h4><p>${esc(w.fading_insight.question)}</p></div>
+    </div>` : ""}
 
     <div class="card">
       <p class="eyebrow">あなたの回復スイッチ</p>
@@ -1110,13 +1193,6 @@ function renderWeek(w, list, s){
       <p class="eyebrow">削られていたもの</p>
       ${sw(w.drains,true)}
     </div>` : ""}
-
-    <div class="card">
-      <p class="eyebrow">繰り返し出てくる、考え方のクセ</p>
-      <p class="sub">${esc(w.recurring_pattern?.observation||"")}</p>
-      ${(w.recurring_pattern?.quotes||[]).map(q=>`<blockquote class="quote">「${esc(q)}」</blockquote>`).join("")}
-      <div class="pill-note"><h4>角度を変える問い</h4><p>${esc(w.recurring_pattern?.reframe_question||"")}</p></div>
-    </div>
 
     <div class="card">
       <p class="eyebrow">この期間で動いたもの</p>
@@ -1221,7 +1297,9 @@ async function runImport(raw){
         plus:(d.plus||[]).filter(t=>TAGS_PLUS.includes(t)),
         minus:(d.minus||[]).filter(t=>TAGS_MINUS.includes(t)),
         text:d.text, question:"", estimated:true, wd:(WD.includes(d.weekday)?d.weekday:""),
-        ai:{ headline:d.headline||"", quote:d.quote||"", facts:"", feeling:"", notice:"", credit:"", tomorrow_question:"", micro_action:"" }
+        ai:{ headline:d.headline||"", quote:d.quote||"", facts:"", feeling:"", notice:"", credit:"",
+             tomorrow_question:"", micro_action:"",
+             self_judgment:d.self_judgment||"", self_insight:d.self_insight||"" }
       };
       const i = entries.findIndex(x=>x.date===e.date);
       i<0 ? entries.push(e) : entries[i] = e;

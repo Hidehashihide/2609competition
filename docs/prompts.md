@@ -1,41 +1,49 @@
 # 提出物③ ── 設計・実装に用いた主要プロンプト全文
 
 アプリ名：**ヨルログ** ／ 単一HTML：`index.html`
-LLM API：Anthropic Messages API（既定 `claude-opus-5`、OpenAI・Gemini にも切替可）
-呼び出しは全て **構造化出力（JSON Schema）** を指定し、表示崩れを起こさない形で受け取っている。
+LLM API：Anthropic Messages API（既定 `claude-opus-5`）／ Google Gemini ／ OpenAI に対応
+全ての呼び出しで **構造化出力（JSON Schema）** を指定している。
 
 ---
 
-## 0. プロンプト設計の方針
+## 0. 設計の中核 ── 3段パイプライン
 
-このアプリは LLM を 3 か所で呼ぶ。いずれも共通の SYSTEM プロンプトの上に、用途別の
-ユーザープロンプトを重ねる二層構成にしている。
+このアプリは LLM に「日記をまとめて」とは一度も頼んでいない。
+**抽出 → 決定的集計 → 分析** の3段に分け、段ごとに役割を変えて呼んでいる。
 
-| # | 呼び出し | 目的 | 渡す情報 |
-|---|---|---|---|
-| 1 | その日のまとめ | 1日分を「整える」 | 日付・曜日・通算日数・からだ/こころの点数と前回差・選択タグ・**その夜投げかけた問い**・本人の原文・直近5日の記録 |
-| 2 | 複数日のふりかえり | 傾向・変化・気づきを引き出す | 期間・**アプリ側で計算した数値の根拠**（推移／前後半差／タグ別の効き目）・全日分の原文と見出し |
-| 3 | 日記の取り込み | 自由記述を記録形式へ構造化 | 生テキスト・タグ語彙・点数の推定基準 |
+```
+第1段：抽出（LLM）      各日の記録から、点数・タグ・見出しに加えて
+                        「本人が自分を評価している言葉」「本人自身の気づき」を
+                        “解釈せず原文のまま” 抜き出す
 
-設計上、意図的に効かせている点は 4 つ。
+第2段：集計（JavaScript） タグごとの効き目 = ついた日のこころ平均 − つかない日の平均
+                        前半／後半の平均差、最高・最低の日、
+                        抽出された言葉を日付つきで束ねる  ← LLMを使わない
+
+第3段：分析（LLM）      集計済みの根拠だけを渡し、
+                        〈物差し〉と〈実際に効いていたもの〉のズレを書かせる
+```
+
+第2段を決定的な計算にしたことが、この設計の要である。
+生の日記をそのまま投げれば出力は感想文になる。
+一方、集計値を先に確定させてから渡せば、**根拠のない断定が物理的に書けなくなる。**
+
+意図的に効かせている点は5つ。
 
 1. **SYSTEM に禁止事項を固定する。** 一般論・励まし・説教・診断・決めつけを名指しで禁じ、
    「本人が書いた語句を最低ひとつそのまま引用する」ことを毎回の制約にした。
-   引用の強制は、出力が一般論に流れる経路を物理的に塞ぐ。
-2. **各フィールドに NG例／OK例 を添える。** 「良いまとめを書け」ではなく、
-   落ちやすい失敗（「充実した一日」「休息も大切です」）を先に潰す。
+2. **各フィールドに NG例／OK例 を添える。** 「良いまとめを書け」ではなく、落ちやすい失敗を先に潰す。
    例文には審査サンプルと無関係な架空の記録を使い、サンプルへの当て込みを避けている。
-3. **数値の根拠をアプリ側で計算してから渡す。**（→ 2 のふりかえり）
-   生の日記だけを投げると出力は感想文になる。タグごとの
-   「ついた日のこころ平均 − つかなかった日の平均」まで JavaScript で算出し、
-   出力に〈数値＋本人の言葉の引用〉の両方を要求する。根拠のない断定が出せなくなる。
-4. **`tomorrow_question` を出力させ、翌晩の入力画面の一番上に出す。**
-   まとめの生成が、次回の入力ガイドを兼ねる。白紙の前で止まる問題への答えを、
-   出力仕様そのものに埋め込んでいる。
+3. **抽出と生成を分離する。** `self_judgment` と `self_insight` は「生成」ではなく「抽出」であると
+   明記し、書かれていなければ空文字を返させる。捏造の余地を仕様から消している。
+4. **推定値は推定値と伝える。** 取り込んだ日の点数はLLMの推定であるため、
+   週次プロンプトにその旨を明記し、「断定の根拠にするときは必ず本人の言葉を添えよ」と指示する。
+5. **`tomorrow_question` を出力させ、翌晩の入力画面の一番上に出す。**
+   まとめの生成が、次回の入力ガイドを兼ねる。
 
 ---
 
-## 1. SYSTEM プロンプト（3つの呼び出しで共通・全文）
+## 1. SYSTEM プロンプト（全呼び出しで共通・全文）
 
 ```text
 あなたは「ヨルログ」という寝る前5分のジャーナリングアプリの中で動く、記録の伴走者です。
@@ -64,7 +72,56 @@ LLM API：Anthropic Messages API（既定 `claude-opus-5`、OpenAI・Gemini に�
 
 ---
 
-## 2. その日のまとめ プロンプト（テンプレート全文 / `buildDailyPrompt`）
+## 2. 第2段：決定的集計（LLMを使わない部分 / `computeStats`）
+
+週次プロンプトに渡す「根拠」は、すべてここで確定させている。
+
+```javascript
+function computeStats(list){
+  const n = list.length;
+  const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const mind = list.map(e=>e.mind), body = list.map(e=>e.body);
+  const half = Math.floor(n/2);
+  const firstHalf = list.slice(0, half || 1), lastHalf = list.slice(n - (half||1));
+
+  // タグ別の効き目 = そのタグがついた日の平均こころ − つかなかった日の平均こころ
+  const tagEffect = (tags) => {
+    const out = [];
+    for(const t of tags){
+      const on  = list.filter(e => (e.plus||[]).concat(e.minus||[]).includes(t));
+      if(on.length === 0) continue;
+      const off = list.filter(e => !(e.plus||[]).concat(e.minus||[]).includes(t));
+      const a = avg(on.map(e=>e.mind)), b = avg(off.map(e=>e.mind));
+      out.push({ tag:t, days:on.length, onAvg:a, offAvg:b, diff:(b===null?null:+(a-b).toFixed(2)),
+                 dates:on.map(e=>fmtShort(e.date)) });
+    }
+    return out.sort((x,y)=> Math.abs(y.diff??0) - Math.abs(x.diff??0));
+  };
+
+  return {
+    n,
+    from: list[0]?.date, to: list[n-1]?.date,
+    mindAvg:+(avg(mind)??0).toFixed(2), bodyAvg:+(avg(body)??0).toFixed(2),
+    firstAvg:+(avg(firstHalf.map(e=>e.mind))??0).toFixed(2),
+    lastAvg:+(avg(lastHalf.map(e=>e.mind))??0).toFixed(2),
+    best: list.filter(e=>e.mind===Math.max(...mind)).map(e=>fmtShort(e.date)),
+    worst:list.filter(e=>e.mind===Math.min(...mind)).map(e=>fmtShort(e.date)),
+    plus: tagEffect(TAGS_PLUS),
+    minus:tagEffect(TAGS_MINUS),
+    // 本人が自分を測っている言葉／本人自身の気づきを、日付つきで束ねる
+    judgments: list.filter(e => e.ai?.self_judgment).map(e => ({d:fmtShort(e.date), q:e.ai.self_judgment})),
+    insights:  list.filter(e => e.ai?.self_insight ).map(e => ({d:fmtShort(e.date), q:e.ai.self_insight })),
+    // 取り込みで推定した日が混じっているか（数値の確からしさを正直に伝えるため）
+    estimated: list.filter(e => e.estimated).map(e => fmtShort(e.date))
+  };
+}
+```
+
+---
+
+## 3. その日のまとめ プロンプト（テンプレート全文 / `buildDailyPrompt`）
+
+末尾2フィールドが第1段の抽出にあたる。
 
 ```javascript
 function buildDailyPrompt(e, recent){
@@ -132,15 +189,26 @@ ${prev}
 
   "micro_action": 明日、5分以内・その場でできる小さな一手をひとつだけ。思いつかなければ空文字。
       習慣化や努力の押し付けはしない。今日の記録から自然に出てくることに限る。
+
+  ── ここから下の2つは「生成」ではなく「抽出」です。解釈を加えず、書かれていなければ空文字にすること。
+
+  "self_judgment": 本人が〈自分自身を評価・採点している〉言い回しを、原文のまま最大40字で抜き出す。
+      該当するのは、自分の価値・成長・時間の使い方・出来の良し悪しを測っている表現。
+      例：「〜できているのか分からない」「〜すべきだった」「〜を無駄にしてないか」といった形。
+      出来事や他人への評価は含めない。なければ空文字。
+
+  "self_insight": 本人が〈自分で何かに気づいている〉一節を、原文のまま最大50字で抜き出す。
+      「〜と気づいた」「〜だったな」「〜を忘れてた」のように、本人自身の発見が書かれている箇所。
+      あなたの気づき（notice欄）とは別物。本人が書いていなければ必ず空文字にする。
 }`;
 }
 ```
 
 ---
 
-## 3. 複数日のふりかえり プロンプト（テンプレート全文 / `buildWeeklyPrompt`）
+## 4. 複数日のふりかえり プロンプト（テンプレート全文 / `buildWeeklyPrompt`）
 
-このアプリの中心。`s` は `computeStats()` がアプリ側で算出した数値。
+本アプリの中核。`s` は `computeStats()` が算出した集計値。
 
 ```javascript
 function buildWeeklyPrompt(list, s){
@@ -176,8 +244,16 @@ ${eff(s.plus,"効いた")}
 ■「削られた」タグの効き目
 ${eff(s.minus,"削られた")}
 
+■ 本人が〈自分自身を評価している〉言葉（各日の記録から原文のまま抽出したもの）
+${s.judgments.length ? s.judgments.map(x=>`- ${x.d}「${x.q}」`).join("\n") : "（抽出されていません）"}
+
+■ 本人が〈自分で気づいた〉と書いている言葉（同上）
+${s.insights.length ? s.insights.map(x=>`- ${x.d}「${x.q}」`).join("\n") : "（抽出されていません）"}
+
 ※数値はあくまで根拠のひとつです。数値と本人の言葉が食い違う場合は、本人の言葉を優先し、
-　その食い違い自体を見つけたこととして書いてください。
+　その食い違い自体を見つけたこととして書いてください。${s.estimated.length ? `
+※ ${s.estimated.join("・")} は書きためた日記から取り込んだ日で、からだ・こころの数値とタグは
+　本文からの推定値です。数値は傾向として扱い、断定の根拠にするときは必ず本人の言葉を添えてください。` : ""}
 
 # 日ごとの記録（全文）
 
@@ -190,29 +266,39 @@ ${days}
       NG例「充実と疲労が入り混じった一週間」…誰の週にも貼れる。
       良い見出しは、読んだ本人が「たしかに今週はそれだった」と言えるもの。
 
+  "the_gap": この期間でいちばん重要な出力。ひとつだけ。
+      〈本人が自分を測っている物差し〉と〈記録の上で実際に本人を回復させていたもの〉のズレを示す。
+      { "your_yardstick", "yardstick_quotes", "what_actually_worked", "the_mismatch" }
+      your_yardstick … 本人が自分を評価するときに使っている基準そのものを1文で名指しする。
+          上の「自分自身を評価している言葉」の抽出結果を根拠にする。
+          NG例「自分に厳しい人」…性格の断定。基準ではなく人物を評価している。
+          良い書き方は、何をものさしにして自分を採点しているかを言い当てるもの。
+      yardstick_quotes … その根拠になる本人の言葉を、日付つきで2つ以上（原文のまま・配列）。
+          例の形式：「6/3『……』」
+      what_actually_worked … 数値の上で実際に調子を戻していたものを1文。数値を必ず含める。
+      the_mismatch … その物差しと、実際に効いていたものが、どうすれ違っているかを2〜3文。
+          効いていたものを本人が「自分の成果」として数えていないなら、その事実を本人の言葉で示す。
+          性格や原因を断定せず、記録から見えることとして書く。
+          この欄が、単なる要約とこのアプリの差になる。最も注意深く書くこと。
+
+  "fading_insight": 本人が自分で気づいて書いたのに、その後の記録では触れられなくなっている
+      気づきをひとつ。{ "quote", "written_on", "what_happened_after", "question" }。
+      quote … 本人が書いた気づきの一節を原文のまま（上の抽出結果から選ぶ）。
+      written_on … その日付（例「6/5」）。
+      what_happened_after … その後の日の記録で、その気づきがどう扱われているかを、
+          日付を挙げて1〜2文。触れられていない、別の言葉に置き換わっている、など。
+      question … その気づきを今週もう一度使うための問いをひとつ。
+      該当が見当たらなければ、quote を空文字にする（無理に作らない）。
+
   "recovery_switches": 「回復スイッチ」＝この人の調子を実際に戻していたものを、最大3つ。配列。
       各要素は { "name", "evidence", "how_to_keep" }。
-      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする（例「ジムで頭の霧を晴らす時間」）。
+      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする。
       evidence … 必ず〈数値〉と〈本人の言葉の直接引用〉の両方を入れる。1〜2文。
           OK例（別人の記録より）「『ちゃんと寝た』4日のこころ平均は3.80、そうでない日は2.40。5/12に『朝から頭が回った』と書かれています」
           NG例「睡眠はメンタルに良い影響を与えます」…一般論であり、この人の記録を根拠にしていない。
       how_to_keep … 増やす提案ではなく、「今あるものをどう落とさないか」を1文で。
 
   "drains": 調子を削っていたものを最大2つ。配列。各要素は { "name", "evidence" }。evidenceは同上の条件。
-
-  "blindspot": この期間でいちばん重要な出力。ひとつだけ。
-      〈記録の上では明らかに効いているのに、本人が自分の成果として数えていないもの〉を書く。
-      判定手順：(1)本人が繰り返し価値を認めているもの（＝自覚済み）を除外する。
-                (2)残ったもののうち、こころのスコアが高い日に共通して現れている要素を探す。
-                (3)その要素について本人が書いた言葉を引用し、本人がそれを「自分の手柄として数えていない」ことを示す。
-      すでに本人が自覚しているものを書いてはいけない（それでは気づきにならない）。2〜4文。
-
-  "recurring_pattern": 期間中に2回以上、形を変えて現れる考え方のクセをひとつ。
-      { "observation", "quotes", "reframe_question" }。
-      observation … 「〜という言い方が、6/3と6/7に出ています」のように、必ず日付で根拠を示す。1〜2文。
-      quotes … 原文からの直接引用を2つ以上（配列・改変禁止）。
-      reframe_question … そのクセを否定も矯正もせず、別の角度から見るための問いをひとつ。
-          NG例「もっと自分を認めてあげましょう」…助言であり問いではない。
 
   "change": 期間のはじめと終わりで動いたものをひとつ。{ "from", "to", "what_moved" }。
       from と to は原則として本人の言葉の直接引用にする（どちらも改変禁止）。
@@ -229,7 +315,7 @@ ${days}
 
 ---
 
-## 4. 日記の取り込み プロンプト（テンプレート全文 / `buildImportPrompt`）
+## 5. 日記の取り込み プロンプト（テンプレート全文 / `buildImportPrompt`）
 
 ```javascript
 function buildImportPrompt(raw, year){
@@ -251,6 +337,11 @@ function buildImportPrompt(raw, year){
 - headline は、その日に付ける12〜22字の体言止めの見出し。本人の言葉を素材にする。
   「充実した一日」のような、誰の日にも貼れる見出しは禁止。
 - quote は、その日の本文から一字一句そのまま抜き出した最大40字の一節。
+- self_judgment は、本人が〈自分自身を評価・採点している〉言い回しを原文のまま最大40字で抜き出す
+  （自分の価値・成長・時間の使い方の良し悪しを測っている表現。なければ空文字）。
+- self_insight は、本人が〈自分で何かに気づいている〉一節を原文のまま最大50字で抜き出す
+  （「〜と気づいた」「〜だったな」「〜を忘れてた」等。なければ空文字）。
+  この2つは解釈ではなく抽出です。書かれていなければ必ず空文字にすること。
 
 # 日記
 """
@@ -259,17 +350,20 @@ ${raw}
 
 # 出力
 { "days": [ { "date":"YYYY-MM-DD", "weekday":"月", "text":"原文", "body":1-5, "mind":1-5,
-              "plus":[...], "minus":[...], "headline":"...", "quote":"..." } ] }
+              "plus":[...], "minus":[...], "headline":"...", "quote":"...",
+              "self_judgment":"...", "self_insight":"..." } ] }
 日付の古い順に並べること。JSONのみを出力すること。`;
 }
 ```
 
 ---
 
-## 5. 出力スキーマ（構造化出力 / JSON Schema）
+## 6. 出力スキーマ（構造化出力 / JSON Schema）
 
 Anthropic は `output_config.format`、OpenAI は `response_format.json_schema`、
-Gemini は `generationConfig.responseSchema` に同じ形を渡している。
+Gemini は `generationConfig.responseSchema` に同じ形を渡す
+（Gemini は OpenAPI 形式のため、`additionalProperties` の除去と型名の大文字化を
+`toGeminiSchema()` で自動変換している）。
 
 ```javascript
 /* ── 6-4. 出力スキーマ（構造化出力で形を保証する） ── */
@@ -277,24 +371,31 @@ const S = (props, req) => ({type:"object", properties:props, required:req, addit
 const str = {type:"string"};
 const SCHEMA_DAILY = S({
   headline:str, facts:str, feeling:str, quote:str,
-  notice:str, credit:str, tomorrow_question:str, micro_action:str
-}, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action"]);
+  notice:str, credit:str, tomorrow_question:str, micro_action:str,
+  self_judgment:str, self_insight:str
+}, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action",
+    "self_judgment","self_insight"]);
 
 const SCHEMA_WEEKLY = S({
   week_headline:str,
+  the_gap:S({your_yardstick:str, yardstick_quotes:{type:"array",items:str},
+             what_actually_worked:str, the_mismatch:str},
+            ["your_yardstick","yardstick_quotes","what_actually_worked","the_mismatch"]),
+  fading_insight:S({quote:str, written_on:str, what_happened_after:str, question:str},
+                   ["quote","written_on","what_happened_after","question"]),
   recovery_switches:{type:"array", items:S({name:str,evidence:str,how_to_keep:str},["name","evidence","how_to_keep"])},
   drains:{type:"array", items:S({name:str,evidence:str},["name","evidence"])},
-  blindspot:str,
-  recurring_pattern:S({observation:str, quotes:{type:"array",items:str}, reframe_question:str},["observation","quotes","reframe_question"]),
   change:S({from:str,to:str,what_moved:str},["from","to","what_moved"]),
   next_week_experiment:S({what:str,why:str,how_to_check:str},["what","why","how_to_check"])
-}, ["week_headline","recovery_switches","drains","blindspot","recurring_pattern","change","next_week_experiment"]);
+}, ["week_headline","the_gap","fading_insight","recovery_switches","drains","change","next_week_experiment"]);
 
 const SCHEMA_IMPORT = S({
   days:{type:"array", items:S({
     date:str, weekday:str, text:str, body:{type:"integer"}, mind:{type:"integer"},
-    plus:{type:"array",items:str}, minus:{type:"array",items:str}, headline:str, quote:str
-  },["date","weekday","text","body","mind","plus","minus","headline","quote"])}
+    plus:{type:"array",items:str}, minus:{type:"array",items:str}, headline:str, quote:str,
+    self_judgment:str, self_insight:str
+  },["date","weekday","text","body","mind","plus","minus","headline","quote",
+     "self_judgment","self_insight"])}
 }, ["days"]);
 ```
 
@@ -302,10 +403,10 @@ const SCHEMA_IMPORT = S({
 
 # 付録 ── サンプル日記を入れたときに実際に送信される全文
 
-以下は、運営提供のサンプル日記（田中さん・6/2〜6/8）を読み込ませたときに、
-アプリが実際に組み立てて送信したプロンプトをそのまま貼ったものである。
+運営提供のサンプル日記（田中さん・6/2〜6/8）を読み込ませたときに、
+アプリが実際に組み立てて送信したプロンプトをそのまま貼ったもの。
 
-## A-1. 取り込み時に送信されたプロンプト
+## A-1. 第1段：取り込み・抽出時に送信されたプロンプト
 
 ```text
 以下は、ある人が書きためた日記です。これをアプリの記録形式に変換してください。
@@ -326,6 +427,11 @@ const SCHEMA_IMPORT = S({
 - headline は、その日に付ける12〜22字の体言止めの見出し。本人の言葉を素材にする。
   「充実した一日」のような、誰の日にも貼れる見出しは禁止。
 - quote は、その日の本文から一字一句そのまま抜き出した最大40字の一節。
+- self_judgment は、本人が〈自分自身を評価・採点している〉言い回しを原文のまま最大40字で抜き出す
+  （自分の価値・成長・時間の使い方の良し悪しを測っている表現。なければ空文字）。
+- self_insight は、本人が〈自分で何かに気づいている〉一節を原文のまま最大50字で抜き出す
+  （「〜と気づいた」「〜だったな」「〜を忘れてた」等。なければ空文字）。
+  この2つは解釈ではなく抽出です。書かれていなければ必ず空文字にすること。
 
 # 日記
 """
@@ -353,11 +459,14 @@ const SCHEMA_IMPORT = S({
 
 # 出力
 { "days": [ { "date":"YYYY-MM-DD", "weekday":"月", "text":"原文", "body":1-5, "mind":1-5,
-              "plus":[...], "minus":[...], "headline":"...", "quote":"..." } ] }
+              "plus":[...], "minus":[...], "headline":"...", "quote":"...",
+              "self_judgment":"...", "self_insight":"..." } ] }
 日付の古い順に並べること。JSONのみを出力すること。
 ```
 
-## A-2. ふりかえり生成時に送信されたプロンプト（★本アプリの中核）
+## A-2. 第3段：ふりかえり生成時に送信されたプロンプト（★中核）
+
+第2段の集計結果が「# アプリが記録から計算した数値」以下に埋め込まれている点に注目。
 
 ```text
 # 対象期間
@@ -386,8 +495,18 @@ const SCHEMA_IMPORT = S({
 - 休めていない：1日（6/6）／ ついた日のこころ平均 4.00 ・ つかない日 3.17 ／ 差 +0.83
 - 焦りがある：1日（6/7）／ ついた日のこころ平均 3.00 ・ つかない日 3.33 ／ 差 -0.33
 
+■ 本人が〈自分自身を評価している〉言葉（各日の記録から原文のまま抽出したもの）
+- 6/3「これって成長してるのか、ただ回してるだけなのか分からなくなる」
+- 6/7「もっとうまく時間を使えるはず」
+
+■ 本人が〈自分で気づいた〉と書いている言葉（同上）
+- 6/5「実は自分の作業じゃなくて人の役に立てたことだったな」
+- 6/6「人と話す時間を忘れてたなと思う」
+
 ※数値はあくまで根拠のひとつです。数値と本人の言葉が食い違う場合は、本人の言葉を優先し、
 　その食い違い自体を見つけたこととして書いてください。
+※ 6/2・6/3・6/4・6/5・6/6・6/7・6/8 は書きためた日記から取り込んだ日で、からだ・こころの数値とタグは
+　本文からの推定値です。数値は傾向として扱い、断定の根拠にするときは必ず本人の言葉を添えてください。
 
 # 日ごとの記録（全文）
 
@@ -447,29 +566,39 @@ const SCHEMA_IMPORT = S({
       NG例「充実と疲労が入り混じった一週間」…誰の週にも貼れる。
       良い見出しは、読んだ本人が「たしかに今週はそれだった」と言えるもの。
 
+  "the_gap": この期間でいちばん重要な出力。ひとつだけ。
+      〈本人が自分を測っている物差し〉と〈記録の上で実際に本人を回復させていたもの〉のズレを示す。
+      { "your_yardstick", "yardstick_quotes", "what_actually_worked", "the_mismatch" }
+      your_yardstick … 本人が自分を評価するときに使っている基準そのものを1文で名指しする。
+          上の「自分自身を評価している言葉」の抽出結果を根拠にする。
+          NG例「自分に厳しい人」…性格の断定。基準ではなく人物を評価している。
+          良い書き方は、何をものさしにして自分を採点しているかを言い当てるもの。
+      yardstick_quotes … その根拠になる本人の言葉を、日付つきで2つ以上（原文のまま・配列）。
+          例の形式：「6/3『……』」
+      what_actually_worked … 数値の上で実際に調子を戻していたものを1文。数値を必ず含める。
+      the_mismatch … その物差しと、実際に効いていたものが、どうすれ違っているかを2〜3文。
+          効いていたものを本人が「自分の成果」として数えていないなら、その事実を本人の言葉で示す。
+          性格や原因を断定せず、記録から見えることとして書く。
+          この欄が、単なる要約とこのアプリの差になる。最も注意深く書くこと。
+
+  "fading_insight": 本人が自分で気づいて書いたのに、その後の記録では触れられなくなっている
+      気づきをひとつ。{ "quote", "written_on", "what_happened_after", "question" }。
+      quote … 本人が書いた気づきの一節を原文のまま（上の抽出結果から選ぶ）。
+      written_on … その日付（例「6/5」）。
+      what_happened_after … その後の日の記録で、その気づきがどう扱われているかを、
+          日付を挙げて1〜2文。触れられていない、別の言葉に置き換わっている、など。
+      question … その気づきを今週もう一度使うための問いをひとつ。
+      該当が見当たらなければ、quote を空文字にする（無理に作らない）。
+
   "recovery_switches": 「回復スイッチ」＝この人の調子を実際に戻していたものを、最大3つ。配列。
       各要素は { "name", "evidence", "how_to_keep" }。
-      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする（例「ジムで頭の霧を晴らす時間」）。
+      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする。
       evidence … 必ず〈数値〉と〈本人の言葉の直接引用〉の両方を入れる。1〜2文。
           OK例（別人の記録より）「『ちゃんと寝た』4日のこころ平均は3.80、そうでない日は2.40。5/12に『朝から頭が回った』と書かれています」
           NG例「睡眠はメンタルに良い影響を与えます」…一般論であり、この人の記録を根拠にしていない。
       how_to_keep … 増やす提案ではなく、「今あるものをどう落とさないか」を1文で。
 
   "drains": 調子を削っていたものを最大2つ。配列。各要素は { "name", "evidence" }。evidenceは同上の条件。
-
-  "blindspot": この期間でいちばん重要な出力。ひとつだけ。
-      〈記録の上では明らかに効いているのに、本人が自分の成果として数えていないもの〉を書く。
-      判定手順：(1)本人が繰り返し価値を認めているもの（＝自覚済み）を除外する。
-                (2)残ったもののうち、こころのスコアが高い日に共通して現れている要素を探す。
-                (3)その要素について本人が書いた言葉を引用し、本人がそれを「自分の手柄として数えていない」ことを示す。
-      すでに本人が自覚しているものを書いてはいけない（それでは気づきにならない）。2〜4文。
-
-  "recurring_pattern": 期間中に2回以上、形を変えて現れる考え方のクセをひとつ。
-      { "observation", "quotes", "reframe_question" }。
-      observation … 「〜という言い方が、6/3と6/7に出ています」のように、必ず日付で根拠を示す。1〜2文。
-      quotes … 原文からの直接引用を2つ以上（配列・改変禁止）。
-      reframe_question … そのクセを否定も矯正もせず、別の角度から見るための問いをひとつ。
-          NG例「もっと自分を認めてあげましょう」…助言であり問いではない。
 
   "change": 期間のはじめと終わりで動いたものをひとつ。{ "from", "to", "what_moved" }。
       from と to は原則として本人の言葉の直接引用にする（どちらも改変禁止）。
@@ -538,5 +667,16 @@ const SCHEMA_IMPORT = S({
 
   "micro_action": 明日、5分以内・その場でできる小さな一手をひとつだけ。思いつかなければ空文字。
       習慣化や努力の押し付けはしない。今日の記録から自然に出てくることに限る。
+
+  ── ここから下の2つは「生成」ではなく「抽出」です。解釈を加えず、書かれていなければ空文字にすること。
+
+  "self_judgment": 本人が〈自分自身を評価・採点している〉言い回しを、原文のまま最大40字で抜き出す。
+      該当するのは、自分の価値・成長・時間の使い方・出来の良し悪しを測っている表現。
+      例：「〜できているのか分からない」「〜すべきだった」「〜を無駄にしてないか」といった形。
+      出来事や他人への評価は含めない。なければ空文字。
+
+  "self_insight": 本人が〈自分で何かに気づいている〉一節を、原文のまま最大50字で抜き出す。
+      「〜と気づいた」「〜だったな」「〜を忘れてた」のように、本人自身の発見が書かれている箇所。
+      あなたの気づき（notice欄）とは別物。本人が書いていなければ必ず空文字にする。
 }
 ```

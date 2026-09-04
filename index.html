@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>ヨルログ — 寝る前5分の、こころの筋トレログ</title>
+<style>
+:root{
+  --bg:#0b0d14;
+  --bg-soft:#101422;
+  --surface:#151a28;
+  --surface-2:#1c2233;
+  --surface-3:#242b3e;
+  --line:#2a3145;
+  --line-soft:#212637;
+  --text:#e7e3db;
+  --text-dim:#a9b0c2;
+  --muted:#767f95;
+  --amber:#e8b17a;
+  --amber-dim:#8a6a48;
+  --teal:#7fb3a8;
+  --rose:#c98b8b;
+  --violet:#9b93cf;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+  --ff:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1100px 620px at 50% -12%, #1a2138 0%, rgba(26,33,56,0) 62%),
+    radial-gradient(760px 460px at 92% 8%, #201d2e 0%, rgba(32,29,46,0) 60%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--ff);
+  font-size:16px;
+  line-height:1.75;
+  letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border:none;background:none}
+textarea,input,select{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:8px}
+
+/* ---------- layout ---------- */
+.wrap{max-width:620px;margin:0 auto;padding:0 18px 96px}
+.topbar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:10px;
+  padding:14px 18px 12px;
+  max-width:620px;margin:0 auto;
+  background:linear-gradient(180deg, rgba(11,13,20,.94) 62%, rgba(11,13,20,0));
+  backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:baseline;gap:9px;font-weight:700;letter-spacing:.06em;font-size:15px}
+.brand .moon{font-size:15px;filter:saturate(.85)}
+.brand small{font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.topbar .sp{flex:1}
+.icon-btn{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  color:var(--text-dim);background:rgba(255,255,255,.03);border:1px solid var(--line-soft);
+  transition:.16s;font-size:15px
+}
+.icon-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* ---------- primitives ---------- */
+.card{
+  background:linear-gradient(168deg,var(--surface) 0%, var(--bg-soft) 100%);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;margin-bottom:14px;
+}
+.card.flat{background:var(--surface);}
+.card-quiet{background:rgba(255,255,255,.022);border:1px solid var(--line-soft);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
+.eyebrow{
+  font-size:11px;letter-spacing:.16em;color:var(--muted);
+  text-transform:uppercase;font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px
+}
+.eyebrow::before{content:"";width:14px;height:1px;background:var(--amber-dim);flex:none}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.5}
+.h-lg{font-size:22px;letter-spacing:.01em}
+.h-md{font-size:17px}
+.sub{color:var(--text-dim);font-size:14px;line-height:1.8}
+.muted{color:var(--muted);font-size:13px;line-height:1.75}
+.tiny{font-size:11.5px;color:var(--muted);line-height:1.7}
+
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;min-height:56px;padding:14px 20px;border-radius:14px;
+  background:linear-gradient(180deg,#eebd8a,#dc9f63);color:#241606;
+  font-weight:700;font-size:16.5px;letter-spacing:.02em;
+  box-shadow:0 8px 24px rgba(224,163,102,.18);transition:.16s;
+}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.42;pointer-events:none;box-shadow:none}
+.btn-ghost{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:48px;padding:11px 18px;border-radius:13px;
+  background:rgba(255,255,255,.035);border:1px solid var(--line);
+  color:var(--text-dim);font-size:14.5px;font-weight:600;transition:.16s
+}
+.btn-ghost:hover{background:rgba(255,255,255,.075);color:var(--text)}
+.btn-text{color:var(--muted);font-size:13.5px;padding:10px 4px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line)}
+.btn-text:hover{color:var(--text-dim)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.mt{margin-top:14px}.mt-s{margin-top:8px}.mt-l{margin-top:26px}
+.center{text-align:center}
+
+/* ---------- steps ---------- */
+.steps{display:flex;gap:6px;align-items:center;margin:2px 0 22px}
+.steps i{height:3px;flex:1;border-radius:2px;background:var(--line);transition:.3s}
+.steps i.on{background:var(--amber)}
+.steps i.done{background:var(--amber-dim)}
+.q-big{font-size:19px;font-weight:700;line-height:1.68;margin:0 0 4px;letter-spacing:.01em}
+
+/* scale picker */
+.scale{display:flex;gap:7px;margin-top:12px}
+.scale button{
+  flex:1;min-height:76px;border-radius:13px;border:1px solid var(--line);
+  background:rgba(255,255,255,.024);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;transition:.14s;padding:6px 2px
+}
+.scale button .em{font-size:21px;line-height:1;filter:grayscale(.35) opacity(.75);transition:.14s}
+.scale button .lb{font-size:10.5px;color:var(--muted);letter-spacing:.02em;transition:.14s}
+.scale button:hover{background:rgba(255,255,255,.06)}
+.scale button.sel{border-color:var(--amber);background:rgba(232,177,122,.14)}
+.scale button.sel .em{filter:none;transform:scale(1.16)}
+.scale button.sel .lb{color:var(--amber)}
+.scale-axis{display:flex;justify-content:space-between;margin-top:7px}
+
+/* tag chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{
+  padding:10px 15px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.024);font-size:14px;color:var(--text-dim);transition:.14s;line-height:1.4
+}
+.chip:hover{background:rgba(255,255,255,.07)}
+.chip.on{border-color:var(--teal);background:rgba(127,179,168,.16);color:#cfe8e1}
+.chip.on.neg{border-color:var(--rose);background:rgba(201,139,139,.15);color:#f0d3d3}
+
+/* textarea */
+.ta{
+  width:100%;min-height:132px;resize:vertical;margin-top:12px;padding:15px 16px;
+  background:rgba(0,0,0,.26);border:1px solid var(--line);border-radius:13px;
+  color:var(--text);line-height:1.85;font-size:15.5px
+}
+.ta::placeholder{color:#5d6479}
+.ta:focus{outline:none;border-color:var(--amber-dim);background:rgba(0,0,0,.34)}
+.ta-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;gap:10px}
+
+/* ---------- output ---------- */
+.headline{
+  font-size:21px;font-weight:700;line-height:1.62;letter-spacing:.01em;
+  color:#f6e9d8;margin:0
+}
+.mirror-row{display:flex;gap:13px;padding:13px 0;border-top:1px solid var(--line-soft)}
+.mirror-row:first-of-type{border-top:none;padding-top:4px}
+.mirror-k{flex:none;width:66px;font-size:11.5px;color:var(--muted);letter-spacing:.1em;padding-top:5px;font-weight:700}
+.mirror-v{flex:1;font-size:15px;line-height:1.85;color:var(--text-dim)}
+.quote{
+  border-left:2px solid var(--amber-dim);padding:4px 0 4px 15px;margin:14px 0 0;
+  color:#dbcfbd;font-size:15px;line-height:1.85
+}
+.pill-note{
+  border-radius:13px;padding:15px 17px;margin-top:14px;
+  border:1px solid rgba(232,177,122,.24);background:rgba(232,177,122,.075)
+}
+.pill-note.teal{border-color:rgba(127,179,168,.26);background:rgba(127,179,168,.075)}
+.pill-note.violet{border-color:rgba(155,147,207,.26);background:rgba(155,147,207,.075)}
+.pill-note h4{margin:0 0 6px;font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700}
+.pill-note.teal h4{color:var(--teal)}
+.pill-note.violet h4{color:var(--violet)}
+.pill-note p{margin:0;font-size:15px;line-height:1.82;color:var(--text)}
+
+/* shelf of headlines */
+.shelf{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.spine{
+  display:flex;align-items:flex-start;gap:13px;padding:13px 2px;
+  border-bottom:1px solid var(--line-soft);text-align:left;width:100%;transition:.14s
+}
+.spine:last-child{border-bottom:none}
+.spine:hover{background:rgba(255,255,255,.03)}
+.spine-d{flex:none;width:52px;font-size:12px;color:var(--muted);padding-top:3px;font-variant-numeric:tabular-nums}
+.spine-t{flex:1;font-size:14.5px;line-height:1.7;color:var(--text-dim)}
+.spine-m{flex:none;display:flex;gap:3px;padding-top:6px}
+.dot{width:6px;height:6px;border-radius:50%}
+
+/* chart */
+.chart{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
+.legend{display:flex;gap:16px;justify-content:center;margin-top:10px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.legend i{width:14px;height:2.5px;border-radius:2px;display:block}
+
+/* switches / evidence */
+.sw{border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-top:10px;background:rgba(255,255,255,.022)}
+.sw-h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.sw-rank{
+  flex:none;width:21px;height:21px;border-radius:6px;display:grid;place-items:center;
+  font-size:11px;font-weight:700;background:rgba(127,179,168,.2);color:var(--teal)
+}
+.sw-rank.neg{background:rgba(201,139,139,.18);color:var(--rose)}
+.sw-n{font-size:15.5px;font-weight:700}
+.sw-e{font-size:13.5px;color:var(--text-dim);line-height:1.8}
+.sw-k{font-size:13px;color:var(--muted);line-height:1.75;margin-top:7px;padding-top:7px;border-top:1px dashed var(--line)}
+
+.arrowline{display:flex;align-items:center;gap:11px;margin-top:12px;flex-wrap:wrap}
+.arrowline .box{
+  flex:1;min-width:130px;border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+  background:rgba(0,0,0,.2);font-size:13.5px;line-height:1.72;color:var(--text-dim)
+}
+.arrowline .box b{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;font-weight:700}
+.arrowline .arw{flex:none;color:var(--amber);font-size:15px}
+
+/* stats strip */
+.stats{display:flex;gap:9px;margin-bottom:14px}
+.stat{
+  flex:1;text-align:center;border:1px solid var(--line-soft);border-radius:13px;
+  padding:13px 6px;background:rgba(255,255,255,.022)
+}
+.stat b{display:block;font-size:22px;font-weight:700;color:var(--amber);line-height:1.25;font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;color:var(--muted);letter-spacing:.06em}
+
+/* modal */
+.modal{
+  position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(4,6,12,.78);backdrop-filter:blur(4px);padding:0
+}
+.modal.on{display:flex}
+.modal-in{
+  width:100%;max-width:620px;max-height:92vh;overflow-y:auto;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:20px 20px 0 0;padding:22px 20px calc(28px + env(safe-area-inset-bottom));
+  animation:up .24s cubic-bezier(.22,.9,.3,1)
+}
+@keyframes up{from{transform:translateY(26px);opacity:.4}to{transform:none;opacity:1}}
+.modal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:7px;font-weight:600}
+.field input,.field select,.field textarea{
+  width:100%;padding:13px 14px;border-radius:11px;background:rgba(0,0,0,.3);
+  border:1px solid var(--line);color:var(--text);font-size:15px
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--amber-dim)}
+.field textarea{min-height:190px;line-height:1.8;resize:vertical;font-size:14px}
+
+/* loader */
+.loading{display:flex;flex-direction:column;align-items:center;gap:16px;padding:52px 20px;text-align:center}
+.orb{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 34% 30%, #f4d3ab, #c98f56 62%, #6b4a2c);animation:pulse 2.1s ease-in-out infinite;box-shadow:0 0 34px rgba(224,163,102,.34)}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.62}50%{transform:scale(1.1);opacity:1}}
+.loading p{margin:0;color:var(--text-dim);font-size:14.5px}
+.loading .sm{color:var(--muted);font-size:12.5px}
+
+.err{border:1px solid rgba(201,139,139,.4);background:rgba(201,139,139,.1);border-radius:12px;padding:14px 16px;font-size:13.5px;color:#f0cccc;line-height:1.75;margin-bottom:14px;word-break:break-word}
+.care{border:1px solid rgba(155,147,207,.4);background:rgba(155,147,207,.1);border-radius:13px;padding:16px 17px;margin-bottom:14px}
+.care h4{margin:0 0 7px;font-size:13.5px;color:var(--violet)}
+.care p{margin:0 0 7px;font-size:13.5px;line-height:1.8;color:var(--text-dim)}
+.care a{color:var(--violet)}
+.hr{height:1px;background:var(--line-soft);margin:22px 0}
+.fadein{animation:fade .42s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.hide{display:none !important}
+footer{text-align:center;padding:34px 18px 24px;color:#4e5568;font-size:11px;line-height:2}
+footer a{color:#6b7288}
+@media(max-width:420px){
+  .wrap{padding:0 14px 96px}
+  .h-lg{font-size:20px}
+  .mirror-k{width:56px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="moon">🌙</span>ヨルログ<small>寝る前5分</small></div>
+  <div class="sp"></div>
+  <button class="icon-btn" id="navWeek" title="ふりかえり">📈</button>
+  <button class="icon-btn" id="navSettings" title="設定">⚙︎</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ══════════ HOME ══════════ -->
+  <section id="view-home" class="view">
+    <div id="homeStats"></div>
+    <div id="carryQuestion"></div>
+
+    <div class="card">
+      <p class="eyebrow">今夜のログ</p>
+      <h1 class="h-lg" id="homeDate"></h1>
+      <p class="sub mt-s" id="homeLead">今日のことを、3タップとひとことだけ。<br>書けなかった分は、こちらで受け取ります。</p>
+      <button class="btn mt" id="startEntry">今夜を記録する</button>
+      <div class="row mt-s">
+        <button class="btn-ghost" id="openImport">まとめて取り込む</button>
+        <button class="btn-ghost" id="loadSample">サンプル日記</button>
+      </div>
+    </div>
+
+    <div id="homeShelf"></div>
+  </section>
+
+  <!-- ══════════ ENTRY ══════════ -->
+  <section id="view-entry" class="view hide">
+    <div class="steps"><i id="st1"></i><i id="st2"></i><i id="st3"></i></div>
+
+    <!-- step 1 -->
+    <div id="step-1" class="card fadein">
+      <p class="eyebrow">STEP 1 ／ 3　コンディション</p>
+      <h2 class="q-big">今日の「からだ」は、どのあたりですか。</h2>
+      <p class="muted">考えこまずに、指が止まったところで。</p>
+      <div class="scale" id="scaleBody"></div>
+      <div class="scale-axis"><span class="tiny">空っぽ</span><span class="tiny">元気</span></div>
+
+      <h2 class="q-big" style="margin-top:26px">「こころ」は、どのあたりでしょう。</h2>
+      <div class="scale" id="scaleMind"></div>
+      <div class="scale-axis"><span class="tiny">重い</span><span class="tiny">軽い</span></div>
+
+      <button class="btn mt-l" id="to2" disabled>つぎへ</button>
+    </div>
+
+    <!-- step 2 -->
+    <div id="step-2" class="card hide">
+      <p class="eyebrow">STEP 2 ／ 3　今日の内訳</p>
+      <h2 class="q-big">今日、少しでも「効いた」ことは。</h2>
+      <p class="muted">当てはまるものをタップ。なければ飛ばして大丈夫です。</p>
+      <div class="chips" id="chipsPlus"></div>
+
+      <h2 class="q-big" style="margin-top:26px">逆に、「削られた」のは。</h2>
+      <div class="chips neg" id="chipsMinus"></div>
+
+      <button class="btn mt-l" id="to3">つぎへ</button>
+      <button class="btn-text center" id="back1" style="width:100%">もどる</button>
+    </div>
+
+    <!-- step 3 -->
+    <div id="step-3" class="card hide">
+      <p class="eyebrow" id="qOrigin">STEP 3 ／ 3　今夜のひとこと</p>
+      <h2 class="q-big" id="theQuestion"></h2>
+      <p class="muted" id="qHint">ひとことで十分です。うまく書けなくて構いません。</p>
+      <textarea class="ta" id="entryText" placeholder="思いついた順に、そのまま。"></textarea>
+      <div class="ta-foot">
+        <button class="btn-text" id="shuffleQ">別の問いにする</button>
+        <button class="btn-text" id="threeWords">ことばが出ない夜</button>
+      </div>
+      <button class="btn mt" id="submitEntry">今日をまとめてもらう</button>
+      <button class="btn-text center" id="back2" style="width:100%">もどる</button>
+    </div>
+  </section>
+
+  <!-- ══════════ RESULT ══════════ -->
+  <section id="view-result" class="view hide"></section>
+
+  <!-- ══════════ WEEK ══════════ -->
+  <section id="view-week" class="view hide"></section>
+
+  <!-- ══════════ LOADING ══════════ -->
+  <section id="view-loading" class="view hide">
+    <div class="loading">
+      <div class="orb"></div>
+      <p id="loadMsg">今日の記録を読み返しています…</p>
+      <p class="sm" id="loadSub">10〜30秒ほどで戻ります</p>
+    </div>
+  </section>
+
+  <footer>
+    ヨルログ ／ 日々の内省を整えるための記録アプリです。医療・診断の代わりにはなりません。<br>
+    気持ちがつらいときは <a href="https://www.mhlw.go.jp/mamorouyokokoro/soudan/" target="_blank" rel="noopener">厚生労働省「まもろうよ こころ」</a> の相談窓口へ。
+  </footer>
+</div>
+
+<!-- ══════════ MODAL: settings ══════════ -->
+<div class="modal" id="mSettings">
+  <div class="modal-in">
+    <div class="modal-h"><h3 class="h-md">設定</h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="field">
+      <label>LLM プロバイダ</label>
+      <select id="setProvider">
+        <option value="anthropic">Anthropic（Claude）</option>
+        <option value="openai">OpenAI</option>
+        <option value="gemini">Google Gemini</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>モデル</label>
+      <input id="setModel" placeholder="claude-opus-5">
+    </div>
+    <div class="field">
+      <label>API キー</label>
+      <input id="setKey" type="password" placeholder="sk-ant-... / sk-... / AIza...">
+      <p class="tiny" style="margin-top:7px">キーはこのブラウザの localStorage にのみ保存され、ソースコードには含まれません。送信先は選択したプロバイダのみです。</p>
+    </div>
+    <button class="btn" id="saveSettings">保存する</button>
+    <div class="hr"></div>
+    <div class="row">
+      <button class="btn-ghost" id="exportData">記録を書き出す</button>
+      <button class="btn-ghost" id="clearData">記録を全消去</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL: import ══════════ -->
+<div class="modal" id="mImport">
+  <div class="modal-in">
+    <div class="modal-h"><h3 class="h-md">まとめて取り込む</h3><button class="icon-btn" data-close>✕</button></div>
+    <p class="muted">すでに書きためた日記や、メモアプリの内容を貼り付けてください。日付ごとに切り分けて、コンディションとタグを推定したうえで取り込みます。</p>
+    <div class="field" style="margin-top:14px">
+      <textarea id="importText" placeholder="6/2（月）&#10;今日から新しいプロジェクトが本格始動。…&#10;&#10;6/3（火）&#10;…"></textarea>
+    </div>
+    <button class="btn" id="runImport">読み込む</button>
+    <button class="btn-text center" id="fillSample" style="width:100%">サンプル日記を貼り付ける</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════
+   ヨルログ — 寝る前5分の、こころの筋トレログ
+   単一HTMLで完結。APIキーはソースに含めず localStorage にのみ保持。
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ───────── 0. 設定（APIキーはプレースホルダのまま。UIから入力する） ───────── */
+const API_KEY_PLACEHOLDER = "";           // ← 提出時は必ず空のまま
+const DEFAULT_MODEL = {
+  anthropic: "claude-opus-5",
+  openai:    "gpt-4o",
+  gemini:    "gemini-2.5-flash"
+};
+
+const LS = { entries:"yorulog.entries.v1", weekly:"yorulog.weekly.v1", cfg:"yorulog.cfg.v1" };
+const load = (k,d)=>{ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } };
+const save = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+
+let entries = load(LS.entries, []);
+let weekly  = load(LS.weekly, null);
+let cfg     = Object.assign({provider:"anthropic", model:DEFAULT_MODEL.anthropic, key:API_KEY_PLACEHOLDER}, load(LS.cfg,{}));
+
+/* ───────── 1. 語彙・スケール ───────── */
+const SCALE = [
+  {v:1, em:"🪫", lb:"限界"},
+  {v:2, em:"😮‍💨", lb:"重い"},
+  {v:3, em:"😐", lb:"ふつう"},
+  {v:4, em:"🙂", lb:"いい"},
+  {v:5, em:"✨", lb:"軽い"}
+];
+// 「効いた／削られた」タグ。これが複数日の傾向分析の燃料になる。
+const TAGS_PLUS  = ["体を動かした","人と話した","誰かの役に立った","集中できた","学びがあった","ちゃんと寝た","ひとつ片づけた","外に出た","おいしいものを食べた","ひとりの時間"];
+const TAGS_MINUS = ["会議が多い","やり直し・手戻り","残業・終電","予定が崩れた","人間関係","準備不足","体調がわるい","焦りがある","比べてしまった","休めていない"];
+
+/* ───────── 2. ガイド付きの問い（コンディションに応じて出し分ける） ───────── */
+const QUESTIONS = {
+  low: [ // こころが重い夜 — 出来事を外に置くための問い
+    "今日、いちばん削られたのは、どの場面でしたか。",
+    "今日いちばんしんどかった瞬間を、ひとつだけ書くとしたら。",
+    "今日、思い通りにいかなかったことを、ひとつだけ。",
+    "今日の自分に、誰かがひとこと言うとしたら、何と言ってほしいですか。"
+  ],
+  mid: [
+    "今日、いちばん心が動いたのはどの瞬間でしたか。",
+    "今日やったことで、明日の自分に効きそうなことはありましたか。",
+    "今日、誰かとの間で起きた小さなことを、ひとつ。",
+    "今日いちばん長く頭を占めていたのは、何でしたか。"
+  ],
+  high: [ // 調子がいい夜 — 良さの正体を言語化させる問い
+    "今日、少しでも良かった瞬間を、ひとつだけ挙げるなら。",
+    "今日の自分がうまくやれたことを、ひとつだけ。",
+    "今日の調子が良かったのは、何のおかげだと思いますか。"
+  ],
+  tired: [ // からだが空なのに心は保っている夜
+    "体は疲れているのに、気持ちが保てたのは何のおかげでしょう。",
+    "疲れきった今日、それでもやれたことをひとつ。"
+  ],
+  helped: [ "その「ありがとう」は、どんな場面でしたか。" ],
+  moved:  [ "体を動かしたあと、頭の中はどう変わりましたか。" ]
+};
+function pickQuestion(st, exclude){
+  let pool = [];
+  if (st.plus.includes("誰かの役に立った")) pool = pool.concat(QUESTIONS.helped);
+  if (st.plus.includes("体を動かした"))     pool = pool.concat(QUESTIONS.moved);
+  if (st.body <= 2 && st.mind >= 3)         pool = pool.concat(QUESTIONS.tired);
+  if (st.mind <= 2)      pool = pool.concat(QUESTIONS.low);
+  else if (st.mind >= 4) pool = pool.concat(QUESTIONS.high);
+  else                   pool = pool.concat(QUESTIONS.mid);
+  if(!pool.length) pool = QUESTIONS.mid.slice();
+  const avail = pool.filter(q => q !== exclude);
+  return avail[Math.floor(Math.random()*avail.length)] || pool[0];
+}
+
+/* ───────── 3. 安全設計：深刻な内容の検知（ローカル判定・送信前） ───────── */
+const RISK = ["死にたい","消えたい","自殺","自傷","リストカット","いなくなりたい","生きていたくない","終わりにしたい","殺してほしい","死のう"];
+const hasRisk = t => !!t && RISK.some(w => t.includes(w));
+const CARE_HTML = `<div class="care">
+  <h4>ひとりで抱えなくて大丈夫です</h4>
+  <p>いま、つらい言葉が記録されていました。このアプリは記録を整えるだけで、診断や治療はできません。話を聞いてくれる窓口があります。</p>
+  <p>・よりそいホットライン <b>0120-279-338</b>（24時間・無料）<br>
+     ・こころの健康相談統一ダイヤル <b>0570-064-556</b><br>
+     ・<a href="https://www.mhlw.go.jp/mamorouyokokoro/soudan/" target="_blank" rel="noopener">厚生労働省「まもろうよ こころ」相談窓口一覧</a></p>
+</div>`;
+
+/* ───────── 4. 日付ユーティリティ ───────── */
+const WD = ["日","月","火","水","木","金","土"];
+const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+function fmtJP(iso){ const [y,m,d]=iso.split("-").map(Number); return `${m}月${d}日（${WD[new Date(y,m-1,d).getDay()]}）`; }
+function fmtShort(iso){ const [,m,d]=iso.split("-").map(Number); return `${m}/${d}`; }
+function weekdayOf(iso){ const [y,m,d]=iso.split("-").map(Number); return WD[new Date(y,m-1,d).getDay()]; }
+// 取り込んだ日記に曜日が書かれていれば、その表記を優先する（元の日記を書き換えないため）
+const wdOf   = e => e.wd || weekdayOf(e.date);
+const fmtJPe = e => { const [,m,d]=e.date.split("-").map(Number); return `${m}月${d}日（${wdOf(e)}）`; };
+const sorted = () => [...entries].sort((a,b)=> a.date < b.date ? -1 : 1);
+
+function streak(){
+  if(!entries.length) return 0;
+  const days = new Set(entries.map(e=>e.date));
+  const list = sorted(), [y,m,dd] = list[list.length-1].date.split("-").map(Number);
+  const d = new Date(y, m-1, dd);
+  let n = 0;
+  for(;;){
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    if(days.has(iso)){ n++; d.setDate(d.getDate()-1); } else break;
+  }
+  return n;
+}
+
+/* ───────── 5. 傾向の「事実」をアプリ側で計算してからAIに渡す ─────────
+   ここが本アプリの肝。生の日記だけを投げず、
+   「タグごとの効き目（差分）」「前半・後半の変化」などの数値をこちらで算出し、
+   根拠つきの出力をAIに要求できる状態にしてから渡す。                    */
+function computeStats(list){
+  const n = list.length;
+  const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const mind = list.map(e=>e.mind), body = list.map(e=>e.body);
+  const half = Math.floor(n/2);
+  const firstHalf = list.slice(0, half || 1), lastHalf = list.slice(n - (half||1));
+
+  // タグ別の効き目 = そのタグがついた日の平均こころ − つかなかった日の平均こころ
+  const tagEffect = (tags) => {
+    const out = [];
+    for(const t of tags){
+      const on  = list.filter(e => (e.plus||[]).concat(e.minus||[]).includes(t));
+      if(on.length === 0) continue;
+      const off = list.filter(e => !(e.plus||[]).concat(e.minus||[]).includes(t));
+      const a = avg(on.map(e=>e.mind)), b = avg(off.map(e=>e.mind));
+      out.push({ tag:t, days:on.length, onAvg:a, offAvg:b, diff:(b===null?null:+(a-b).toFixed(2)),
+                 dates:on.map(e=>fmtShort(e.date)) });
+    }
+    return out.sort((x,y)=> Math.abs(y.diff??0) - Math.abs(x.diff??0));
+  };
+
+  return {
+    n,
+    from: list[0]?.date, to: list[n-1]?.date,
+    mindAvg:+(avg(mind)??0).toFixed(2), bodyAvg:+(avg(body)??0).toFixed(2),
+    firstAvg:+(avg(firstHalf.map(e=>e.mind))??0).toFixed(2),
+    lastAvg:+(avg(lastHalf.map(e=>e.mind))??0).toFixed(2),
+    best: list.filter(e=>e.mind===Math.max(...mind)).map(e=>fmtShort(e.date)),
+    worst:list.filter(e=>e.mind===Math.min(...mind)).map(e=>fmtShort(e.date)),
+    plus: tagEffect(TAGS_PLUS),
+    minus:tagEffect(TAGS_MINUS)
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. プロンプト設計
+   ───────────────────────────────────────────────────────────────
+   方針：
+   (a) 役割・禁止事項を SYSTEM に固定し、毎回同じ土台で動かす
+   (b) 「日付・曜日・コンディション・タグ・今夜の問い・本人の原文・直近の記録」を
+       セットで渡す（良いまとめに必要な情報を欠けさせない）
+   (c) 各フィールドに NG例／OK例 を添えて、一般論に流れる出口を塞ぐ
+   (d) 週次では、アプリが算出した「数値の根拠」を渡し、
+       出力に必ず〈数値＋本人の言葉の引用〉を要求する
+   ═══════════════════════════════════════════════════════════════ */
+
+const SYSTEM_PROMPT = `あなたは「ヨルログ」という寝る前5分のジャーナリングアプリの中で動く、記録の伴走者です。
+書き手は、毎晩遅くまで働く忙しい社会人。疲れきった状態で、たった数行だけ書いて眠ります。
+
+【役割】
+書き手が自分の言葉で書いたものを、書き手自身が明日読み返せる形に「整える」こと。
+新しい解釈を足すことより、本人がすでに書いているのに自分では価値として数えていないものを見つけて返すことを優先します。
+
+【必ず守ること】
+1. 本人の言葉を使う。出力の中で、本人が書いた語句を最低ひとつ、改変せずそのまま引用する（「」で囲む）。
+2. 決めつけない。「あなたは〇〇な人だ」「原因は〇〇だ」といった性格・原因の断定はしない。
+   観察は必ず記録に根拠を置き、「6/3と6/7に〜と書かれています」のように出どころを示す。
+3. 心理診断・医療的助言をしない。病名、症状の判断、受診や治療の指示はしない。
+   つらさが強くうかがえる場合も、評価や助言ではなく、本人の言葉をそのまま受けとめる書き方にとどめる。
+4. 一般論を書かない。「お疲れさまでした」「無理は禁物です」「休息も大切です」のような、
+   誰の日記に貼っても成立する文は禁止。この人の、この日にしか当てはまらないことだけを書く。
+5. 説教しない。「〜すべき」「〜した方がいい」は使わない。提案は指定された欄に、ひとつだけ。
+6. 短く書く。読むのは、眠る直前の疲れた人。ひとつの項目は最大2文。
+7. 出力は指定されたJSONのみ。前置き・後書き・コードフェンス・マークダウン記法は一切書かない。
+
+【文体】
+です・ます調。静かで落ち着いたトーン。感嘆符と絵文字は使わない。
+励ましも慰めもしない。ただ、見落とされているものを、そっと目の前に置く。`;
+
+/* ── 6-1. その日のまとめ ── */
+function buildDailyPrompt(e, recent){
+  const tag = a => (a && a.length) ? a.join("／") : "（選択なし）";
+  const all = sorted(), idx = all.findIndex(x => x.date === e.date);
+  const nth = idx<0 ? all.length+1 : idx+1;
+  const total = idx<0 ? all.length+1 : all.length;
+  const prev = recent.length ? recent.map(r =>
+      `- ${fmtShort(r.date)}（${wdOf(r)}）からだ${r.body} こころ${r.mind}／` +
+      `見出し「${r.ai?.headline || "—"}」／本人の言葉：「${(r.text||"").slice(0,70)}」`
+    ).join("\n") : "（まだありません。今日が最初の記録です）";
+
+  const p0 = recent[recent.length-1];
+  const delta = p0 ? `（前回 ${fmtShort(p0.date)} との差： からだ ${sign(e.body-p0.body)} ／ こころ ${sign(e.mind-p0.mind)}）` : "";
+
+  return `# 今日の記録
+
+日付：${fmtJPe(e)}
+記録の通算：${nth}日目（これまでに ${total}日分の記録）
+コンディション：からだ ${e.body}/5 ・ こころ ${e.mind}/5 ${delta}
+今日「効いた」と本人が選んだもの：${tag(e.plus)}
+今日「削られた」と本人が選んだもの：${tag(e.minus)}
+
+アプリが今夜投げかけた問い：
+「${e.question}」
+
+本人の答え（原文のまま。誤字も含めて手を入れない）：
+"""
+${e.text || "（記入なし。タップでの選択のみ）"}
+"""
+
+# 直近の記録（比較のための参考。今日のまとめの主役ではありません）
+${prev}
+
+# 出力するJSON（各欄の指示に厳密に従うこと）
+
+{
+  "headline": 今日に名前をつける。本人の言葉から作った12〜22字の体言止め。
+      NG例「充実した一日」「忙しい月曜日」…誰の日にも貼れるので不可。
+      OK例（別人の記録より）「昼を抜いたまま走った日の、夕方の手応え」…本人の「手応え」を素材にしている。
+      本人の記述が短いときは、選ばれたタグとコンディションから、事実の範囲で作る。
+
+  "facts": 今日「何があったか」だけを、評価や感情を混ぜずに1〜2文。本人が書いていないことは足さない。
+
+  "feeling": 今日「どう感じたか」を1〜2文。本人の言葉を「」で引用しながら書く。
+      感情に名前をつけ直すときは「〜という言葉が置かれています」のように、本人の表現に寄り添う。
+
+  "quote": 本人が書いた文の中で今日を最もよく表す一節を、一字一句そのまま抜き出す（最大40字・改変禁止）。
+      記述がない場合のみ空文字。
+
+  "notice": 今日の小さな気づきをひとつだけ。
+      本人の記述の中にある事実どうしを結びつけて作る（Aと書いてあり、同時にBとも書いてある→その2つの関係）。
+      記録にない情報を持ち込まない。断定を避け「〜かもしれません」で終える。
+      NG例「疲れが溜まっているようです。休息が必要かもしれません」…記録から出ていない一般論。
+      OK例（別人の記録より）「一日ずっと追われていたと書きながら、夕方の打ち合わせには『手応え』という言葉が使われています。
+            追われている時間と、そうでない時間が、今日は分かれていたのかもしれません」
+
+  "credit": 今日の自分が「できていたこと」をひとつ。成果ではなく行動を拾う。
+      忙しさの中で本人が数え忘れている、小さくて具体的な行動を選ぶ。称賛しすぎない。
+
+  "tomorrow_question": 明日の夜、この人がアプリを開いて最初に目にする問いをひとつ作る。
+      今日の記録を受けた問いにし、今日書かれた言葉を必ず含める。1〜2文で答えられる具体性にする。
+      NG例「今日はどんな一日でしたか」…今日の記録と無関係。
+      OK例（別人の記録より）「昨日は夕方の打ち合わせを『手応え』と書いていました。今日、それに近い時間はありましたか」
+
+  "micro_action": 明日、5分以内・その場でできる小さな一手をひとつだけ。思いつかなければ空文字。
+      習慣化や努力の押し付けはしない。今日の記録から自然に出てくることに限る。
+}`;
+}
+const sign = n => n>0 ? `+${n}` : (n<0 ? `${n}` : "±0");
+
+/* ── 6-2. 複数日のふりかえり（「変化が見えない」への答え） ── */
+function buildWeeklyPrompt(list, s){
+  const line = (label, arr) => `${label}：` + arr.map(e=>`${fmtShort(e.date)} ${e[label==="こころ"?"mind":"body"]}`).join(" → ");
+  const eff = (arr, dir) => arr.length ? arr.map(t =>
+      `- ${t.tag}：${t.days}日（${t.dates.join("・")}）／ ついた日のこころ平均 ${t.onAvg.toFixed(2)} ・ つかない日 ${t.offAvg===null?"—":t.offAvg.toFixed(2)} ／ 差 ${t.diff>0?"+":""}${t.diff.toFixed(2)}`
+    ).join("\n") : `（${dir}のタグは選ばれていません）`;
+
+  const days = list.map(e => {
+    const t = a => (a&&a.length)? a.join("／") : "なし";
+    return `## ${fmtShort(e.date)}（${wdOf(e)}） からだ${e.body} こころ${e.mind}／効いた：${t(e.plus)}／削られた：${t(e.minus)}
+${e.question ? `その夜の問い：「${e.question}」\n` : ""}本人の言葉（原文）：
+"""
+${e.text || "（記述なし）"}
+"""
+その日の見出し：「${e.ai?.headline || "—"}」`;
+  }).join("\n\n");
+
+  return `# 対象期間
+${fmtJPe(list[0])} 〜 ${fmtJPe(list[list.length-1])}／記録 ${s.n}日分
+
+# アプリが記録から計算した数値（あなたの推測ではなく、確定した事実です）
+
+${line("こころ", list)}
+${line("からだ", list)}
+こころ平均 ${s.mindAvg}／からだ平均 ${s.bodyAvg}
+期間前半の平均こころ ${s.firstAvg.toFixed(2)} → 後半 ${s.lastAvg.toFixed(2)}（差 ${s.lastAvg-s.firstAvg>0?"+":""}${(s.lastAvg-s.firstAvg).toFixed(2)}）
+こころが最も高い日：${s.best.join("・")}／最も低い日：${s.worst.join("・")}
+
+■「効いた」タグの効き目（そのタグがついた日のこころ平均 − つかなかった日の平均）
+${eff(s.plus,"効いた")}
+
+■「削られた」タグの効き目
+${eff(s.minus,"削られた")}
+
+※数値はあくまで根拠のひとつです。数値と本人の言葉が食い違う場合は、本人の言葉を優先し、
+　その食い違い自体を見つけたこととして書いてください。
+
+# 日ごとの記録（全文）
+
+${days}
+
+# 出力するJSON（各欄の指示に厳密に従うこと）
+
+{
+  "week_headline": この期間に名前をつける。本人の言葉を素材にした15〜28字。
+      NG例「充実と疲労が入り混じった一週間」…誰の週にも貼れる。
+      良い見出しは、読んだ本人が「たしかに今週はそれだった」と言えるもの。
+
+  "recovery_switches": 「回復スイッチ」＝この人の調子を実際に戻していたものを、最大3つ。配列。
+      各要素は { "name", "evidence", "how_to_keep" }。
+      name … 上のタグ名をそのまま使わず、この人の記録に即した言い方にする（例「ジムで頭の霧を晴らす時間」）。
+      evidence … 必ず〈数値〉と〈本人の言葉の直接引用〉の両方を入れる。1〜2文。
+          OK例（別人の記録より）「『ちゃんと寝た』4日のこころ平均は3.80、そうでない日は2.40。5/12に『朝から頭が回った』と書かれています」
+          NG例「睡眠はメンタルに良い影響を与えます」…一般論であり、この人の記録を根拠にしていない。
+      how_to_keep … 増やす提案ではなく、「今あるものをどう落とさないか」を1文で。
+
+  "drains": 調子を削っていたものを最大2つ。配列。各要素は { "name", "evidence" }。evidenceは同上の条件。
+
+  "blindspot": この期間でいちばん重要な出力。ひとつだけ。
+      〈記録の上では明らかに効いているのに、本人が自分の成果として数えていないもの〉を書く。
+      判定手順：(1)本人が繰り返し価値を認めているもの（＝自覚済み）を除外する。
+                (2)残ったもののうち、こころのスコアが高い日に共通して現れている要素を探す。
+                (3)その要素について本人が書いた言葉を引用し、本人がそれを「自分の手柄として数えていない」ことを示す。
+      すでに本人が自覚しているものを書いてはいけない（それでは気づきにならない）。2〜4文。
+
+  "recurring_pattern": 期間中に2回以上、形を変えて現れる考え方のクセをひとつ。
+      { "observation", "quotes", "reframe_question" }。
+      observation … 「〜という言い方が、6/3と6/7に出ています」のように、必ず日付で根拠を示す。1〜2文。
+      quotes … 原文からの直接引用を2つ以上（配列・改変禁止）。
+      reframe_question … そのクセを否定も矯正もせず、別の角度から見るための問いをひとつ。
+          NG例「もっと自分を認めてあげましょう」…助言であり問いではない。
+
+  "change": 期間のはじめと終わりで動いたものをひとつ。{ "from", "to", "what_moved" }。
+      from と to は原則として本人の言葉の直接引用にする（どちらも改変禁止）。
+      what_moved … その2つの言葉の間で何が動いたのかを1〜2文。
+      変化が見当たらない場合は、無理に作らず「変わらず続いていること」を同じ形式で書く。
+
+  "next_week_experiment": 来週ためす小さな実験をひとつだけ。{ "what", "why", "how_to_check" }。
+      what … 5〜15分でできること。「毎日〇〇する」のような負荷の高い習慣化は提案しない。
+      why … なぜそれなのかを、上の数値か引用を根拠に1文。
+      how_to_check … 来週の記録のどこを見れば効いたか分かるかを1文（例「金曜のこころが3を割らないか」）。
+}`;
+}
+
+/* ── 6-3. まとめて取り込み（自由記述→構造化） ── */
+function buildImportPrompt(raw, year){
+  return `以下は、ある人が書きためた日記です。これをアプリの記録形式に変換してください。
+
+# 変換ルール
+- 日付の区切りごとに1件に分ける。「6/2（月）」のような表記は ${year}年として "YYYY-MM-DD" に直す。
+  日付が書かれていない塊は、直前の日の続きとして扱う。
+- weekday には、日記に書かれている曜日の文字（月・火・水・木・金・土・日）をそのまま入れる。
+  書かれていなければ空文字にする。日付から計算し直さないこと。
+- text には、その日の本文を原文のまま入れる（要約・整形・誤字修正をしない）。
+- body（からだ）と mind（こころ）は本文から1〜5で推定する。推定の基準：
+  1=限界・何もできない ／ 2=重い・つらい ／ 3=ふつう ／ 4=調子がいい ／ 5=軽い・満ちている
+  「疲れた」「終電」→ からだを下げる。「落ち込む」「分からなくなる」→ こころを下げる。
+  「嬉しかった」「前向き」「ほどけた」→ こころを上げる。書かれていない感情を足さない。
+- plus / minus は、次のリストの中から本文に根拠のあるものだけを選ぶ（無理に埋めない）。
+  plus: ${TAGS_PLUS.join("、")}
+  minus: ${TAGS_MINUS.join("、")}
+- headline は、その日に付ける12〜22字の体言止めの見出し。本人の言葉を素材にする。
+  「充実した一日」のような、誰の日にも貼れる見出しは禁止。
+- quote は、その日の本文から一字一句そのまま抜き出した最大40字の一節。
+
+# 日記
+"""
+${raw}
+"""
+
+# 出力
+{ "days": [ { "date":"YYYY-MM-DD", "weekday":"月", "text":"原文", "body":1-5, "mind":1-5,
+              "plus":[...], "minus":[...], "headline":"...", "quote":"..." } ] }
+日付の古い順に並べること。JSONのみを出力すること。`;
+}
+
+/* ── 6-4. 出力スキーマ（構造化出力で形を保証する） ── */
+const S = (props, req) => ({type:"object", properties:props, required:req, additionalProperties:false});
+const str = {type:"string"};
+const SCHEMA_DAILY = S({
+  headline:str, facts:str, feeling:str, quote:str,
+  notice:str, credit:str, tomorrow_question:str, micro_action:str
+}, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action"]);
+
+const SCHEMA_WEEKLY = S({
+  week_headline:str,
+  recovery_switches:{type:"array", items:S({name:str,evidence:str,how_to_keep:str},["name","evidence","how_to_keep"])},
+  drains:{type:"array", items:S({name:str,evidence:str},["name","evidence"])},
+  blindspot:str,
+  recurring_pattern:S({observation:str, quotes:{type:"array",items:str}, reframe_question:str},["observation","quotes","reframe_question"]),
+  change:S({from:str,to:str,what_moved:str},["from","to","what_moved"]),
+  next_week_experiment:S({what:str,why:str,how_to_check:str},["what","why","how_to_check"])
+}, ["week_headline","recovery_switches","drains","blindspot","recurring_pattern","change","next_week_experiment"]);
+
+const SCHEMA_IMPORT = S({
+  days:{type:"array", items:S({
+    date:str, weekday:str, text:str, body:{type:"integer"}, mind:{type:"integer"},
+    plus:{type:"array",items:str}, minus:{type:"array",items:str}, headline:str, quote:str
+  },["date","weekday","text","body","mind","plus","minus","headline","quote"])}
+}, ["days"]);
+
+/* ═══════════════════════════════════════════════════════════════
+   7. LLM API 呼び出し（Anthropic / OpenAI / Gemini）
+   ═══════════════════════════════════════════════════════════════ */
+function stripSchema(o){ // Gemini は additionalProperties を受け付けない
+  if(Array.isArray(o)) return o.map(stripSchema);
+  if(o && typeof o==="object"){
+    const c={};
+    for(const k in o){ if(k==="additionalProperties") continue; c[k]=stripSchema(o[k]); }
+    return c;
+  }
+  return o;
+}
+function parseJSON(t){
+  if(!t) throw new Error("空の応答が返りました");
+  let s = t.trim().replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"").trim();
+  try{ return JSON.parse(s); }catch(e){}
+  const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if(a>=0 && b>a) return JSON.parse(s.slice(a,b+1));
+  throw new Error("JSONとして解釈できませんでした");
+}
+
+async function callLLM(userPrompt, schema, maxTokens){
+  if(!cfg.key) throw new Error("APIキーが未設定です。右上の ⚙︎ から設定してください。");
+  const model = cfg.model || DEFAULT_MODEL[cfg.provider];
+  let url, headers, body, pick;
+
+  if(cfg.provider === "anthropic"){
+    url = "https://api.anthropic.com/v1/messages";
+    headers = {
+      "content-type":"application/json",
+      "x-api-key": cfg.key,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"   // ブラウザから直接呼ぶために必要
+    };
+    const oc = { format:{ type:"json_schema", schema } };
+    if(/opus-5|opus-4-[678]|sonnet-5|fable/.test(model)) oc.effort = "medium"; // 寝る前なので待たせすぎない
+    body = { model, max_tokens:maxTokens, system:SYSTEM_PROMPT, output_config:oc,
+             messages:[{role:"user", content:userPrompt}] };
+    pick = j => {
+      if(j.stop_reason === "refusal") throw new Error("安全性の判定により生成が中断されました");
+      return (j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    };
+
+  }else if(cfg.provider === "openai"){
+    url = "https://api.openai.com/v1/chat/completions";
+    headers = { "content-type":"application/json", "authorization":"Bearer "+cfg.key };
+    body = { model, max_completion_tokens:maxTokens,
+      messages:[{role:"system",content:SYSTEM_PROMPT},{role:"user",content:userPrompt}],
+      response_format:{ type:"json_schema", json_schema:{ name:"yorulog", strict:true, schema } } };
+    pick = j => j.choices?.[0]?.message?.content;
+
+  }else{
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(cfg.key)}`;
+    headers = { "content-type":"application/json" };
+    body = { systemInstruction:{parts:[{text:SYSTEM_PROMPT}]},
+      contents:[{role:"user", parts:[{text:userPrompt}]}],
+      generationConfig:{ responseMimeType:"application/json", responseSchema:stripSchema(schema), maxOutputTokens:maxTokens } };
+    pick = j => (j.candidates?.[0]?.content?.parts||[]).map(p=>p.text).join("");
+  }
+
+  const res = await fetch(url, {method:"POST", headers, body:JSON.stringify(body)});
+  if(!res.ok){
+    let d=""; try{ d = (await res.json()).error?.message || ""; }catch(e){ try{ d = await res.text(); }catch(e2){} }
+    throw new Error(`API エラー ${res.status}　${String(d).slice(0,220)}`);
+  }
+  return parseJSON(pick(await res.json()));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. 画面描画
+   ═══════════════════════════════════════════════════════════════ */
+const $  = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const VIEWS = ["home","entry","result","week","loading"];
+function show(v){ VIEWS.forEach(x => $("#view-"+x).classList.toggle("hide", x!==v)); window.scrollTo({top:0,behavior:"instant"}); }
+function busy(msg, sub){ $("#loadMsg").textContent = msg; $("#loadSub").textContent = sub || "10〜30秒ほどで戻ります"; show("loading"); }
+
+/* ── 7日ぶんの推移グラフ（外部ライブラリなし） ── */
+function chartSVG(list){
+  const L = list.slice(-14), n = L.length;
+  if(n < 2) return "";
+  const W=560, H=170, PL=34, PR=14, PT=16, PB=30;
+  const x = i => PL + (W-PL-PR) * (n===1?0.5:i/(n-1));
+  const y = v => PT + (H-PT-PB) * (1 - (v-1)/4);
+  const path = k => L.map((e,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(e[k]).toFixed(1)}`).join(" ");
+  const dots = (k,c) => L.map((e,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(e[k]).toFixed(1)}" r="3.4" fill="${c}"/>`).join("");
+  const grid = [1,3,5].map(v=>`<line x1="${PL}" y1="${y(v)}" x2="${W-PR}" y2="${y(v)}" stroke="#252b3d" stroke-width="1"/>
+     <text x="${PL-9}" y="${y(v)+4}" fill="#5c6379" font-size="10" text-anchor="end">${v}</text>`).join("");
+  const step = n>8 ? 2 : 1;
+  const labels = L.map((e,i)=> i%step ? "" :
+     `<text x="${x(i).toFixed(1)}" y="${H-9}" fill="#5c6379" font-size="10" text-anchor="middle">${fmtShort(e.date)}</text>`).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="こころとからだの推移">
+    ${grid}
+    <path d="${path("body")}" fill="none" stroke="#7fb3a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".72" stroke-dasharray="4 4"/>
+    <path d="${path("mind")}" fill="none" stroke="#e8b17a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots("body","#7fb3a8")}${dots("mind","#e8b17a")}${labels}
+  </svg>
+  <div class="legend"><span><i style="background:#e8b17a"></i>こころ</span><span><i style="background:#7fb3a8"></i>からだ</span></div>`;
+}
+
+/* ── ホーム ── */
+function renderHome(){
+  const list = sorted(), last = list[list.length-1];
+  $("#homeDate").textContent = fmtJP(todayISO());
+
+  // 積み上がりの可視化
+  $("#homeStats").innerHTML = list.length ? `<div class="stats">
+      <div class="stat"><b>${list.length}</b><span>記録した日</span></div>
+      <div class="stat"><b>${streak()}</b><span>連続した日</span></div>
+      <div class="stat"><b>${computeStats(list).mindAvg.toFixed(1)}</b><span>こころ平均</span></div>
+    </div>` : "";
+
+  // ★ 白紙にしない仕掛け：昨夜のAIが置いていった問いを、今夜いちばん上に出す
+  const carry = last && last.date !== todayISO() && last.ai?.tomorrow_question;
+  $("#carryQuestion").innerHTML = carry ? `<div class="card-quiet fadein">
+      <p class="eyebrow">${esc(fmtShort(last.date))}の自分から、今夜のあなたへ</p>
+      <p style="margin:0;font-size:16.5px;line-height:1.8;color:#f0e2cf">${esc(last.ai.tomorrow_question)}</p>
+    </div>` : "";
+
+  $("#homeLead").innerHTML = list.length
+    ? "今日のことを、3タップとひとことだけ。<br>書けなかった分は、こちらで受け取ります。"
+    : "まだ記録はありません。まずは今夜のぶんを、3タップと1行から。";
+
+  // 見出しの背表紙 ＝「続けた分だけ、読み返せる本になる」
+  let shelf = "";
+  if(list.length){
+    const recent = list.slice(-10).reverse();
+    shelf = `<div class="card">
+      <p class="eyebrow">これまでの見出し</p>
+      <div class="shelf">${recent.map(e=>`
+        <button class="spine" data-day="${esc(e.date)}">
+          <span class="spine-d">${esc(fmtShort(e.date))}（${esc(wdOf(e))}）</span>
+          <span class="spine-t">${esc(e.ai?.headline || (e.text||"").slice(0,26) || "（記録のみ）")}</span>
+          <span class="spine-m">
+            <i class="dot" style="background:${mColor(e.mind)}"></i>
+            <i class="dot" style="background:${bColor(e.body)}"></i>
+          </span>
+        </button>`).join("")}</div>
+      ${list.length>=2 ? `<div style="margin-top:16px">${chartSVG(list)}</div>` : ""}
+      ${list.length>=3
+        ? `<button class="btn-ghost mt" id="goWeek">${list.length}日ぶんのふりかえりを読む</button>`
+        : `<p class="tiny mt">あと${3-list.length}日でふりかえりが開きます。</p>`}
+    </div>`;
+  }
+  $("#homeShelf").innerHTML = shelf;
+}
+const mColor = v => ["#3a3f52","#6b5a52","#8a7358","#b48a5e","#e8b17a"][v-1] || "#3a3f52";
+const bColor = v => ["#3a3f52","#4b5a58","#5c7a72","#6d9a8e","#7fb3a8"][v-1] || "#3a3f52";
+
+/* ── 記録フロー ── */
+let draft = null;
+function newDraft(){ return { date:todayISO(), body:0, mind:0, plus:[], minus:[], text:"", question:"" }; }
+
+function renderScales(){
+  const build = (el, key) => {
+    el.innerHTML = SCALE.map(s=>`<button data-v="${s.v}" class="${draft[key]===s.v?"sel":""}">
+      <span class="em">${s.em}</span><span class="lb">${s.lb}</span></button>`).join("");
+    el.querySelectorAll("button").forEach(b => b.onclick = () => {
+      draft[key] = +b.dataset.v; build(el,key);
+      $("#to2").disabled = !(draft.body && draft.mind);
+      if(draft.body && draft.mind) setTimeout(()=>$("#to2").scrollIntoView({behavior:"smooth",block:"nearest"}), 120);
+    });
+  };
+  build($("#scaleBody"),"body"); build($("#scaleMind"),"mind");
+  $("#to2").disabled = !(draft.body && draft.mind);
+}
+function renderChips(){
+  const build = (el, arr, key, neg) => {
+    el.innerHTML = arr.map(t=>`<button class="chip ${neg?"neg":""} ${draft[key].includes(t)?"on":""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+    el.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+      const t=b.dataset.t, i=draft[key].indexOf(t);
+      i<0 ? draft[key].push(t) : draft[key].splice(i,1);
+      build(el,arr,key,neg);
+    });
+  };
+  build($("#chipsPlus"),TAGS_PLUS,"plus",false);
+  build($("#chipsMinus"),TAGS_MINUS,"minus",true);
+}
+function goStep(n){
+  [1,2,3].forEach(i=>$("#step-"+i).classList.toggle("hide", i!==n));
+  [1,2,3].forEach(i=>{ const el=$("#st"+i); el.className = i<n?"done":(i===n?"on":""); });
+  $("#step-"+n).classList.add("fadein");
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function renderQuestion(){
+  const list = sorted(), last = list[list.length-1];
+  const carry = last && last.date !== draft.date && last.ai?.tomorrow_question;
+  if(carry && !draft.question){
+    draft.question = last.ai.tomorrow_question;
+    $("#qOrigin").textContent = `STEP 3 ／ 3　${fmtShort(last.date)}の自分からの問い`;
+  }else{
+    if(!draft.question) draft.question = pickQuestion(draft, null);
+    $("#qOrigin").textContent = "STEP 3 ／ 3　今夜のひとこと";
+  }
+  $("#theQuestion").textContent = draft.question;
+}
+
+/* ── その日のまとめの表示 ── */
+function renderResult(e){
+  const a = e.ai || {};
+  const deep = !!(a.facts || a.feeling || a.notice || a.credit);   // 詳しく整えた日かどうか
+  $("#view-result").innerHTML = `
+    ${hasRisk(e.text) ? CARE_HTML : ""}
+    <div class="card fadein">
+      <p class="eyebrow">${esc(fmtJPe(e))}　からだ ${e.body}／こころ ${e.mind}</p>
+      <h2 class="headline">${esc(a.headline||"")}</h2>
+      ${a.quote ? `<blockquote class="quote">「${esc(a.quote)}」</blockquote>` : ""}
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">${deep ? "今日の整理" : "この日の記録"}</p>
+      ${a.facts   ? `<div class="mirror-row"><div class="mirror-k">できごと</div><div class="mirror-v">${esc(a.facts)}</div></div>` : ""}
+      ${a.feeling ? `<div class="mirror-row"><div class="mirror-k">きもち</div><div class="mirror-v">${esc(a.feeling)}</div></div>` : ""}
+      ${(!deep && e.text) ? `<div class="mirror-row"><div class="mirror-k">本文</div><div class="mirror-v">${esc(e.text)}</div></div>` : ""}
+      ${(e.plus.length||e.minus.length) ? `<div class="mirror-row"><div class="mirror-k">内訳</div><div class="mirror-v">
+        ${e.plus.map(t=>`<span style="color:var(--teal)">＋${esc(t)}</span>`).join("　")}
+        ${e.minus.map(t=>`<span style="color:var(--rose)">−${esc(t)}</span>`).join("　")}</div></div>` : ""}
+      ${e.estimated ? `<p class="tiny mt-s">取り込んだ日記です。からだ・こころの数値とタグは本文からの推定値です。</p>` : ""}
+    </div>
+
+    ${deep ? `<div class="card">
+      ${a.notice ? `<div class="pill-note"><h4>今日の気づき</h4><p>${esc(a.notice)}</p></div>` : ""}
+      ${a.credit ? `<div class="pill-note teal"><h4>できていたこと</h4><p>${esc(a.credit)}</p></div>` : ""}
+      ${a.micro_action ? `<div class="pill-note violet"><h4>明日の5分</h4><p>${esc(a.micro_action)}</p></div>` : ""}
+    </div>` : `<div class="card">
+      <p class="sub">この日は日記の取り込みだけで、まだ整理していません。</p>
+      <button class="btn mt" id="rDeepen">この日を整理してもらう</button>
+    </div>`}
+
+    ${a.tomorrow_question ? `<div class="card-quiet">
+      <p class="eyebrow">明日のあなたへ、置いていく問い</p>
+      <p style="margin:0;font-size:16px;line-height:1.8;color:#f0e2cf">${esc(a.tomorrow_question)}</p>
+      <p class="tiny mt-s">この問いは、明日ヨルログを開いたときにいちばん上に出ます。</p>
+    </div>` : ""}
+
+    <button class="btn-ghost mt" id="rHome">おやすみなさい</button>
+    ${entries.length>=3 ? `<button class="btn-ghost mt-s" id="rWeek">${entries.length}日ぶんのふりかえりを読む</button>` : ""}
+  `;
+  $("#rHome").onclick = () => { renderHome(); show("home"); };
+  const rw = $("#rWeek"); if(rw) rw.onclick = () => runWeekly();
+  const rd = $("#rDeepen"); if(rd) rd.onclick = () => deepen(e.date);
+  show("result");
+}
+
+/* ── 複数日のふりかえりの表示 ── */
+function renderWeek(w, list, s){
+  const sw = (arr, neg) => (arr||[]).map((x,i)=>`
+    <div class="sw">
+      <div class="sw-h"><span class="sw-rank ${neg?"neg":""}">${i+1}</span><span class="sw-n">${esc(x.name)}</span></div>
+      <div class="sw-e">${esc(x.evidence)}</div>
+      ${x.how_to_keep ? `<div class="sw-k">${esc(x.how_to_keep)}</div>` : ""}
+    </div>`).join("");
+
+  $("#view-week").innerHTML = `
+    <div class="card fadein">
+      <p class="eyebrow">${esc(fmtShort(s.from))}〜${esc(fmtShort(s.to))}　${s.n}日分のふりかえり</p>
+      <h2 class="headline">${esc(w.week_headline||"")}</h2>
+      <div style="margin-top:18px">${chartSVG(list)}</div>
+      <div class="stats" style="margin-top:16px;margin-bottom:0">
+        <div class="stat"><b>${s.firstAvg.toFixed(1)}</b><span>前半のこころ</span></div>
+        <div class="stat"><b>${s.lastAvg.toFixed(1)}</b><span>後半のこころ</span></div>
+        <div class="stat"><b>${s.lastAvg-s.firstAvg>0?"+":""}${(s.lastAvg-s.firstAvg).toFixed(1)}</b><span>差</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">見落としていたもの</p>
+      <div class="pill-note violet" style="margin-top:0">
+        <h4>気づいていない回復スイッチ</h4>
+        <p>${esc(w.blindspot||"")}</p>
+      </div>
+      <p class="tiny mt-s">記録の上では効いているのに、自分の手柄として数えられていないものです。</p>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">あなたの回復スイッチ</p>
+      <p class="muted">この期間、実際に調子を戻していたもの。数値と、あなたが書いた言葉の両方を根拠にしています。</p>
+      ${sw(w.recovery_switches,false)}
+    </div>
+
+    ${(w.drains&&w.drains.length) ? `<div class="card">
+      <p class="eyebrow">削られていたもの</p>
+      ${sw(w.drains,true)}
+    </div>` : ""}
+
+    <div class="card">
+      <p class="eyebrow">繰り返し出てくる、考え方のクセ</p>
+      <p class="sub">${esc(w.recurring_pattern?.observation||"")}</p>
+      ${(w.recurring_pattern?.quotes||[]).map(q=>`<blockquote class="quote">「${esc(q)}」</blockquote>`).join("")}
+      <div class="pill-note"><h4>角度を変える問い</h4><p>${esc(w.recurring_pattern?.reframe_question||"")}</p></div>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">この期間で動いたもの</p>
+      <div class="arrowline">
+        <div class="box"><b>${esc(fmtShort(s.from))} ごろ</b>「${esc(w.change?.from||"")}」</div>
+        <span class="arw">→</span>
+        <div class="box"><b>${esc(fmtShort(s.to))} ごろ</b>「${esc(w.change?.to||"")}」</div>
+      </div>
+      <p class="sub mt">${esc(w.change?.what_moved||"")}</p>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">来週ためす、ひとつだけの実験</p>
+      <div class="pill-note teal" style="margin-top:0"><h4>やること</h4><p>${esc(w.next_week_experiment?.what||"")}</p></div>
+      <div class="mirror-row" style="margin-top:12px"><div class="mirror-k">なぜ</div><div class="mirror-v">${esc(w.next_week_experiment?.why||"")}</div></div>
+      <div class="mirror-row"><div class="mirror-k">確かめ方</div><div class="mirror-v">${esc(w.next_week_experiment?.how_to_check||"")}</div></div>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">この期間の見出し</p>
+      <div class="shelf">${list.map(e=>`<div class="spine">
+        <span class="spine-d">${esc(fmtShort(e.date))}（${esc(wdOf(e))}）</span>
+        <span class="spine-t">${esc(e.ai?.headline||"—")}</span>
+        <span class="spine-m"><i class="dot" style="background:${mColor(e.mind)}"></i><i class="dot" style="background:${bColor(e.body)}"></i></span>
+      </div>`).join("")}</div>
+    </div>
+
+    <button class="btn-ghost mt" id="wHome">ホームにもどる</button>
+    <button class="btn-text center mt-s" id="wRedo" style="width:100%">もう一度ふりかえりを生成する</button>
+  `;
+  $("#wHome").onclick = () => { renderHome(); show("home"); };
+  $("#wRedo").onclick = () => runWeekly(true);
+  show("week");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. アクション
+   ═══════════════════════════════════════════════════════════════ */
+function showError(msg, back){
+  $("#view-result").innerHTML = `<div class="err">${esc(msg)}</div>
+    <div class="card"><p class="sub">通信かキーの設定を見直して、もう一度お試しください。記録そのものは保存されています。</p>
+    <button class="btn-ghost mt" id="eSet">設定をひらく</button>
+    <button class="btn-ghost mt-s" id="eHome">ホームにもどる</button></div>`;
+  $("#eSet").onclick = () => openModal("#mSettings");
+  $("#eHome").onclick = () => { renderHome(); show(back||"home"); };
+  show("result");
+}
+
+async function submitEntry(){
+  draft.text = $("#entryText").value.trim();
+  busy("今日の記録を読み返しています…", "書かれた言葉から、見落としを探しています");
+  const recent = sorted().filter(x => x.date < draft.date).slice(-5);
+  try{
+    const ai = await callLLM(buildDailyPrompt(draft, recent), SCHEMA_DAILY, 8000);
+    const e = Object.assign({}, draft, {ai});
+    const i = entries.findIndex(x => x.date === e.date);
+    i<0 ? entries.push(e) : entries[i] = e;
+    save(LS.entries, entries);
+    weekly = null; save(LS.weekly, null);   // 記録が増えたらふりかえりは作り直す
+    renderHome();
+    renderResult(e, true);
+  }catch(err){ showError(err.message || String(err)); }
+}
+
+// 取り込んだ日を、その日の記録だけを渡してあらためて整える
+async function deepen(date){
+  const e = entries.find(x => x.date === date); if(!e) return;
+  busy("この日の記録を読み返しています…", "書かれた言葉から、見落としを探しています");
+  try{
+    const before = sorted().filter(x => x.date < date).slice(-5);
+    const ai = await callLLM(buildDailyPrompt(e, before), SCHEMA_DAILY, 8000);
+    e.ai = Object.assign({}, e.ai, ai);
+    save(LS.entries, entries);
+    renderHome(); renderResult(e);
+  }catch(err){ showError(err.message || String(err)); }
+}
+
+async function runWeekly(force){
+  const list = sorted();
+  if(list.length < 3){ alert("ふりかえりは3日ぶん以上の記録から生成できます。"); return; }
+  const s = computeStats(list);
+  if(!force && weekly && weekly.n === list.length){ renderWeek(weekly.data, list, s); return; }
+  busy("これまでの記録を並べています…", `${list.length}日分から、傾向と変化を探しています`);
+  try{
+    const data = await callLLM(buildWeeklyPrompt(list, s), SCHEMA_WEEKLY, 16000);
+    weekly = { n:list.length, data }; save(LS.weekly, weekly);
+    renderWeek(data, list, s);
+  }catch(err){ showError(err.message || String(err), "home"); }
+}
+
+async function runImport(raw){
+  if(!raw.trim()){ alert("日記のテキストを貼り付けてください。"); return; }
+  closeModals();
+  busy("日記を日付ごとに切り分けています…", "コンディションとタグを推定しています");
+  try{
+    const r = await callLLM(buildImportPrompt(raw, new Date().getFullYear()), SCHEMA_IMPORT, 16000);
+    const days = (r.days||[]).filter(d => d.date && d.text);
+    if(!days.length) throw new Error("日付を見つけられませんでした。日付の行を入れてお試しください。");
+    for(const d of days){
+      const e = {
+        date:d.date, body:Math.min(5,Math.max(1,d.body||3)), mind:Math.min(5,Math.max(1,d.mind||3)),
+        plus:(d.plus||[]).filter(t=>TAGS_PLUS.includes(t)),
+        minus:(d.minus||[]).filter(t=>TAGS_MINUS.includes(t)),
+        text:d.text, question:"", estimated:true, wd:(WD.includes(d.weekday)?d.weekday:""),
+        ai:{ headline:d.headline||"", quote:d.quote||"", facts:"", feeling:"", notice:"", credit:"", tomorrow_question:"", micro_action:"" }
+      };
+      const i = entries.findIndex(x=>x.date===e.date);
+      i<0 ? entries.push(e) : entries[i] = e;
+    }
+    save(LS.entries, entries);
+    weekly = null; save(LS.weekly, null);
+    renderHome();
+    if(entries.length >= 3) await runWeekly(true);   // 取り込んだらそのままふりかえりまで走らせる
+    else show("home");
+  }catch(err){ showError(err.message || String(err)); }
+}
+
+/* ── 審査用サンプル日記（参照2・原文のまま） ── */
+const SAMPLE = `6/2（月）
+今日から新しいプロジェクトが本格始動。朝から会議が続いて、気づいたら退勤が22時過ぎ。やることは山ほどあるのに、自分が今日何をしたのかうまく思い出せない。ジムは行けなかった。疲れた。
+
+6/3（火）
+資料の詰めが甘くて、部長にやり直しを指示された。悔しいというより、こういう抜けが自分は多い気がして少し落ち込む。忙しく動いてはいるけど、これって成長してるのか、ただ回してるだけなのか分からなくなる。帰りは終電近く。
+
+6/4（水）
+疲れてたけど、無理やりジムへ。1時間動いたら頭の中の霧が少し晴れた感じ。やっぱり体を動かすと調子が戻る。仕事は相変わらず重いけど、今日は前向きな気持ちで眠れそう。ジムだけは、ちゃんと積み上がってる実感がある。
+
+6/5（木）
+後輩の作りかけの資料の相談に乗った。自分の経験がそのまま役に立って、「ありがとうございます」と言われたのが素直に嬉しかった。今週いちばん満たされた瞬間が、実は自分の作業じゃなくて人の役に立てたことだったな、と後で気づいた。
+
+6/6（金）
+週末前でくたくた。でも久しぶりに前職の同期と飲みに行けた。仕事の愚痴も、昔話も、これからやりたいことも話せて、心がほどけた。ここ最近ずっと下を向いて手を動かすばかりで、人と話す時間を忘れてたなと思う。
+
+6/7（土）
+昼まで寝て、午後にジム。時間に余裕があるのは嬉しいのに、「せっかくの休みを無駄にしてないか」とそわそわする自分もいる。もっとうまく時間を使えるはず、という焦りが、休みの日でも消えてくれない。
+
+6/8（日）
+一週間を振り返ると、しんどい日も多かったけど、思っていたより悪くない週だった気もする。ジムに行けた日は調子が良かったし、後輩や同期と関われた時間は確かに嬉しかった。来週も、この小さいのだけは続けたい。`;
+
+/* ═══════════════════════════════════════════════════════════════
+   10. イベント配線
+   ═══════════════════════════════════════════════════════════════ */
+const openModal  = s => $(s).classList.add("on");
+const closeModals= () => document.querySelectorAll(".modal").forEach(m=>m.classList.remove("on"));
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeModals);
+document.querySelectorAll(".modal").forEach(m => m.onclick = e => { if(e.target===m) closeModals(); });
+
+$("#startEntry").onclick = () => {
+  const ex = entries.find(x=>x.date===todayISO());
+  draft = ex ? Object.assign({}, ex) : newDraft();
+  renderScales(); renderChips();
+  $("#qHint").textContent = "ひとことで十分です。うまく書けなくて構いません。";
+  $("#entryText").placeholder = "思いついた順に、そのまま。";
+  $("#entryText").value = draft.text || "";
+  draft.question = ""; renderQuestion();
+  goStep(1); show("entry");
+};
+$("#to2").onclick   = () => { renderChips(); goStep(2); };
+$("#to3").onclick   = () => { draft.question=""; renderQuestion(); goStep(3); };
+$("#back1").onclick = () => goStep(1);
+$("#back2").onclick = () => goStep(2);
+$("#submitEntry").onclick = submitEntry;
+$("#shuffleQ").onclick = () => { draft.question = pickQuestion(draft, draft.question); $("#theQuestion").textContent = draft.question; $("#qOrigin").textContent="STEP 3 ／ 3　今夜のひとこと"; };
+
+// ★「書けない夜」の逃げ道：3語だけで成立させる（続かない、への答え）
+$("#threeWords").onclick = () => {
+  draft.question = "今日を3つの言葉にすると、何ですか。";
+  $("#theQuestion").textContent = draft.question;
+  $("#qOrigin").textContent = "STEP 3 ／ 3　ことばが出ない夜のモード";
+  $("#qHint").textContent = "単語を3つだけ。文にしなくて大丈夫です。選んだタップと合わせて読み取ります。";
+  const ta = $("#entryText"); ta.placeholder = "例：会議つづき　もどかしい　終電"; ta.focus();
+};
+$("#navWeek").onclick = () => { entries.length>=3 ? runWeekly() : alert("ふりかえりは3日ぶん以上の記録から生成できます。\nサンプル日記の読み込みでもお試しいただけます。"); };
+$("#navSettings").onclick = () => {
+  $("#setProvider").value = cfg.provider; $("#setModel").value = cfg.model; $("#setKey").value = cfg.key;
+  openModal("#mSettings");
+};
+$("#setProvider").onchange = e => { $("#setModel").value = DEFAULT_MODEL[e.target.value]; };
+$("#saveSettings").onclick = () => {
+  cfg = { provider:$("#setProvider").value, model:$("#setModel").value.trim() || DEFAULT_MODEL[$("#setProvider").value], key:$("#setKey").value.trim() };
+  save(LS.cfg, cfg); closeModals();
+};
+$("#exportData").onclick = () => {
+  const blob = new Blob([JSON.stringify({entries, weekly}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `yorulog-${todayISO()}.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+};
+$("#clearData").onclick = () => {
+  if(!confirm("これまでの記録をすべて消します。よろしいですか。")) return;
+  entries=[]; weekly=null; save(LS.entries,entries); save(LS.weekly,null);
+  renderHome(); closeModals(); show("home");
+};
+$("#openImport").onclick = () => { $("#importText").value=""; openModal("#mImport"); };
+$("#fillSample").onclick = () => { $("#importText").value = SAMPLE; };
+$("#runImport").onclick  = () => runImport($("#importText").value);
+$("#loadSample").onclick = () => {
+  if(entries.length && !confirm("サンプル日記を取り込みます。同じ日付の記録は上書きされます。よろしいですか。")) return;
+  runImport(SAMPLE);
+};
+document.addEventListener("click", e => {
+  const sp = e.target.closest(".spine[data-day]"); if(sp){ const en = entries.find(x=>x.date===sp.dataset.day); if(en) renderResult(en); }
+  const gw = e.target.closest("#goWeek"); if(gw) runWeekly();
+});
+
+/* ── 起動 ── */
+renderHome();
+show("home");
+if(!cfg.key) setTimeout(()=>{ $("#navSettings").click(); }, 500);
+</script>
+</body>
+</html>

@@ -813,11 +813,17 @@ const SCHEMA_IMPORT = S({
 /* ═══════════════════════════════════════════════════════════════
    7. LLM API 呼び出し（Anthropic / OpenAI / Gemini）
    ═══════════════════════════════════════════════════════════════ */
-function stripSchema(o){ // Gemini は additionalProperties を受け付けない
-  if(Array.isArray(o)) return o.map(stripSchema);
+// Gemini の responseSchema は OpenAPI 形式：additionalProperties を受け付けず、
+// type は大文字（STRING / OBJECT / ARRAY …）でなければならない。
+const GEMINI_TYPES = {string:"STRING", number:"NUMBER", integer:"INTEGER", boolean:"BOOLEAN", array:"ARRAY", object:"OBJECT"};
+function toGeminiSchema(o){
+  if(Array.isArray(o)) return o.map(toGeminiSchema);
   if(o && typeof o==="object"){
-    const c={};
-    for(const k in o){ if(k==="additionalProperties") continue; c[k]=stripSchema(o[k]); }
+    const c = {};
+    for(const k in o){
+      if(k === "additionalProperties") continue;
+      c[k] = (k === "type" && GEMINI_TYPES[o[k]]) ? GEMINI_TYPES[o[k]] : toGeminiSchema(o[k]);
+    }
     return c;
   }
   return o;
@@ -867,7 +873,7 @@ async function callLLM(userPrompt, schema, maxTokens){
     body = { systemInstruction:{parts:[{text:SYSTEM_PROMPT}]},
       contents:[{role:"user", parts:[{text:userPrompt}]}],
       // Gemini 2.5 系は思考トークンも maxOutputTokens を消費するため、上限を広めに確保する
-      generationConfig:{ responseMimeType:"application/json", responseSchema:stripSchema(schema), maxOutputTokens:maxTokens*3 } };
+      generationConfig:{ responseMimeType:"application/json", responseSchema:toGeminiSchema(schema), maxOutputTokens:maxTokens*3 } };
     pick = j => {
       const c = j.candidates?.[0];
       if(c && c.finishReason === "MAX_TOKENS") throw new Error("出力が上限に達しました。設定でモデルを変えるか、記録の日数を減らしてお試しください。");

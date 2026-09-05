@@ -179,6 +179,26 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.5}
 .pill-note.violet h4{color:var(--violet)}
 .pill-note p{margin:0;font-size:15px;line-height:1.82;color:var(--text)}
 
+/* 今日の締めくくり — 画面の最後に置く、あたたかい灯り */
+.closing{
+  margin-top:16px;padding:30px 24px 26px;border-radius:18px;text-align:center;
+  border:1px solid rgba(232,177,122,.2);
+  background:
+    radial-gradient(130% 150% at 50% 0%, rgba(232,177,122,.15) 0%, rgba(232,177,122,.035) 52%, rgba(232,177,122,0) 100%),
+    rgba(255,255,255,.012);
+}
+.closing p{margin:0;font-size:17px;line-height:2.1;color:#f6ead9;letter-spacing:.02em}
+.closing .mk{
+  display:block;margin-top:20px;font-size:10.5px;letter-spacing:.3em;
+  color:var(--amber-dim);font-weight:700
+}
+/* 明日にそっと置いていくもの — 静かに、今夜は開かない */
+.tomorrow{border:1px dashed var(--line);border-radius:14px;padding:16px 18px;margin-top:14px;background:rgba(255,255,255,.014)}
+.tomorrow .lbl{font-size:10.5px;letter-spacing:.14em;color:var(--muted);font-weight:700;display:block;margin-bottom:9px}
+.tomorrow .q{margin:0;font-size:15.5px;line-height:1.85;color:#e2d6c4}
+.tomorrow .act{margin:12px 0 0;padding-top:12px;border-top:1px dashed var(--line);font-size:14px;line-height:1.8;color:var(--text-dim)}
+.tomorrow .act b{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--muted);margin-bottom:4px;font-weight:700}
+
 /* shelf of headlines */
 .shelf{display:flex;flex-direction:column;gap:0;margin-top:6px}
 .spine{
@@ -617,9 +637,20 @@ const SYSTEM_PROMPT = `あなたは「ヨルログ」という寝る前5分の�
 6. 短く書く。読むのは、眠る直前の疲れた人。ひとつの項目は最大2文。
 7. 出力は指定されたJSONのみ。前置き・後書き・コードフェンス・マークダウン記法は一切書かない。
 
-【文体】
-です・ます調。静かで落ち着いたトーン。感嘆符と絵文字は使わない。
-励ましも慰めもしない。ただ、見落とされているものを、そっと目の前に置く。`;
+【文体・態度】
+です・ます調。静かで、やわらかいトーン。感嘆符と絵文字は使わない。
+読むのは、一日を終えてこれから眠る人です。
+読み終えたときに、身構えが解けて、少し息がつけるように書いてください。
+
+あたたかさは、一般論の慰めからではなく「具体」から生まれます。
+　「お疲れさま、無理しないでくださいね」——誰にでも言える言葉は、かえって冷たく響きます。
+　「22時過ぎまで動いて、それでもこうして記録を残しています」——
+　その人の今日を見ていた者にしか言えない言葉が、あたたかさになります。
+だから、慰めようとしないでください。その人の今日を、正確に見てください。
+正確に見られることが、この人にとっての安心になります。
+
+責めない。急かさない。宿題を出さない。
+まだできていないことではなく、すでにそこにあるものを指して終わること。`;
 
 /* ── 6-1. その日のまとめ ── */
 function buildDailyPrompt(e, recent){
@@ -678,7 +709,8 @@ ${prev}
             追われている時間と、そうでない時間が、今日は分かれていたのかもしれません」
 
   "credit": 今日の自分が「できていたこと」をひとつ。成果ではなく行動を拾う。
-      忙しさの中で本人が数え忘れている、小さくて具体的な行動を選ぶ。称賛しすぎない。
+      忙しさの中で本人が数え忘れている、小さくて具体的な行動を選ぶ。
+      大げさに褒めない。ただ、ちゃんと見ていたことが伝わるように書く。
 
   "tomorrow_question": 明日の夜、この人がアプリを開いて最初に目にする問いをひとつ作る。
       今日の記録を受けた問いにし、今日書かれた言葉を必ず含める。1〜2文で答えられる具体性にする。
@@ -686,7 +718,22 @@ ${prev}
       OK例（別人の記録より）「昨日は夕方の打ち合わせを『手応え』と書いていました。今日、それに近い時間はありましたか」
 
   "micro_action": 明日、5分以内・その場でできる小さな一手をひとつだけ。思いつかなければ空文字。
+      宿題にしないこと。「できたら」「もし余裕があれば」の距離感で書き、
+      やらなくても責められないと分かる書き方にする。
       習慣化や努力の押し付けはしない。今日の記録から自然に出てくることに限る。
+
+  "closing": 今日を閉じるための、最後の一言。1〜2文。
+      画面のいちばん最後に表示され、この人が読み終えて目を閉じる文になります。
+      次の3つをすべて満たすこと。
+      (1) 今日の記録の中の具体に触れる（本人の言葉か、今日実際にあったこと）。
+      (2) 「今日はもう終わっていい」と伝わる。やり残しや宿題を思い出させない。
+      (3) 明日に向けて、身構えさせずに、灯りをひとつだけ置く。押しつけない。
+      NG例「お疲れさまでした。ゆっくり休んでくださいね」…誰の日にも言えるので不可。
+      NG例「明日はきっと良い日になります」…記録に根拠のない励ましなので不可。
+      NG例「明日はもう少し早く帰れるといいですね」…今日の記録にない願望の押しつけ。
+      OK例（別人の記録より）「昼を抜いたまま走った一日でしたが、夕方にはちゃんと手応えが残りました。
+          今日はもう、ここまでで十分です。」
+      命令形と感嘆符は使わない。眠る直前に読む文なので、静かに終えること。
 
   ── ここから下の2つは「生成」ではなく「抽出」です。解釈を加えず、書かれていなければ空文字にすること。
 
@@ -771,6 +818,8 @@ ${days}
       the_mismatch … その物差しと、実際に効いていたものが、どうすれ違っているかを2〜3文。
           効いていたものを本人が「自分の成果」として数えていないなら、その事実を本人の言葉で示す。
           性格や原因を断定せず、記録から見えることとして書く。
+          責める書き方をしない。間違いを指摘するのではなく、
+          すでにこの人が持っているのに数えられていないものを、そっと手渡すように書く。
           この欄が、単なる要約とこのアプリの差になる。最も注意深く書くこと。
 
   "fading_insight": 本人が自分で気づいて書いたのに、その後の記録では触れられなくなっている
@@ -780,6 +829,7 @@ ${days}
       what_happened_after … その後の日の記録で、その気づきがどう扱われているかを、
           日付を挙げて1〜2文。触れられていない、別の言葉に置き換わっている、など。
       question … その気づきを今週もう一度使うための問いをひとつ。
+          忘れていたことを責める調子にせず、もう一度出会い直すための問いにする。
       該当が見当たらなければ、quote を空文字にする（無理に作らない）。
 
   "recovery_switches": 「回復スイッチ」＝この人の調子を実際に戻していたものを、最大3つ。配列。
@@ -848,9 +898,9 @@ const str = {type:"string"};
 const SCHEMA_DAILY = S({
   headline:str, facts:str, feeling:str, quote:str,
   notice:str, credit:str, tomorrow_question:str, micro_action:str,
-  self_judgment:str, self_insight:str
+  closing:str, self_judgment:str, self_insight:str
 }, ["headline","facts","feeling","quote","notice","credit","tomorrow_question","micro_action",
-    "self_judgment","self_insight"]);
+    "closing","self_judgment","self_insight"]);
 
 const SCHEMA_WEEKLY = S({
   week_headline:str,
@@ -1113,19 +1163,24 @@ function renderResult(e){
     ${deep ? `<div class="card">
       ${a.notice ? `<div class="pill-note"><h4>今日の気づき</h4><p>${esc(a.notice)}</p></div>` : ""}
       ${a.credit ? `<div class="pill-note teal"><h4>できていたこと</h4><p>${esc(a.credit)}</p></div>` : ""}
-      ${a.micro_action ? `<div class="pill-note violet"><h4>明日の5分</h4><p>${esc(a.micro_action)}</p></div>` : ""}
     </div>` : `<div class="card">
       <p class="sub">この日は日記の取り込みだけで、まだ整理していません。</p>
       <button class="btn mt" id="rDeepen">この日を整理してもらう</button>
     </div>`}
 
-    ${a.tomorrow_question ? `<div class="card-quiet">
-      <p class="eyebrow">明日のあなたへ、置いていく問い</p>
-      <p style="margin:0;font-size:16px;line-height:1.8;color:#f0e2cf">${esc(a.tomorrow_question)}</p>
-      <p class="tiny mt-s">この問いは、明日ヨルログを開いたときにいちばん上に出ます。</p>
+    ${(a.tomorrow_question || a.micro_action) ? `<div class="tomorrow">
+      <span class="lbl">明日にそっと置いていくもの</span>
+      ${a.tomorrow_question ? `<p class="q">${esc(a.tomorrow_question)}</p>` : ""}
+      ${a.micro_action ? `<p class="act"><b>もし余裕があれば</b>${esc(a.micro_action)}</p>` : ""}
+      <p class="tiny" style="margin-top:11px">今夜は、ここは考えなくて大丈夫です。明日ひらいたときに、いちばん上に出ます。</p>
     </div>` : ""}
 
-    <button class="btn-ghost mt" id="rHome">おやすみなさい</button>
+    ${a.closing ? `<div class="closing">
+      <p>${esc(a.closing)}</p>
+      <span class="mk">おやすみなさい</span>
+    </div>` : ""}
+
+    <button class="btn-ghost mt" id="rHome">今日を閉じる</button>
     ${entries.length>=3 ? `<button class="btn-ghost mt-s" id="rWeek">${entries.length}日ぶんのふりかえりを読む</button>` : ""}
   `;
   $("#rHome").onclick = () => { renderHome(); show("home"); };

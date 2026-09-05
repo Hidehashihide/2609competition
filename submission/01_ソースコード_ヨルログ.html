@@ -295,6 +295,8 @@ h1,h2,h3{margin:0;font-weight:700;line-height:1.5}
 .loading .sm{color:var(--muted);font-size:12.5px}
 
 .err{border:1px solid rgba(201,139,139,.4);background:rgba(201,139,139,.1);border-radius:12px;padding:14px 16px;font-size:13.5px;color:#f0cccc;line-height:1.75;margin-bottom:14px;word-break:break-word}
+.ok-box{border:1px solid rgba(127,179,168,.42);background:rgba(127,179,168,.11);border-radius:12px;
+  padding:14px 16px;font-size:13.5px;color:#d3ece5;line-height:1.75;margin-bottom:12px}
 .care{border:1px solid rgba(155,147,207,.4);background:rgba(155,147,207,.1);border-radius:13px;padding:16px 17px;margin-bottom:14px}
 .care h4{margin:0 0 7px;font-size:13.5px;color:var(--violet)}
 .care p{margin:0 0 7px;font-size:13.5px;line-height:1.8;color:var(--text-dim)}
@@ -432,7 +434,10 @@ footer a{color:#6b7288}
       <input id="setKey" type="password" placeholder="sk-ant-... / sk-... / AIza...">
       <p class="tiny" style="margin-top:7px">キーはこのブラウザの localStorage にのみ保存され、ソースコードには含まれません。送信先は選択したプロバイダのみです。</p>
     </div>
+    <div id="testResult"></div>
     <button class="btn" id="saveSettings">保存する</button>
+    <button class="btn-ghost mt-s" id="testConn">保存して接続をテストする</button>
+    <p class="tiny" style="margin-top:9px">はじめて使うキーや、モデル名を変えたときは、先に接続テストをしておくと安心です。</p>
     <div class="hr"></div>
     <div class="row">
       <button class="btn-ghost" id="exportData">記録を書き出す</button>
@@ -466,7 +471,7 @@ const API_KEY_PLACEHOLDER = "";           // ← 提出時は必ず空のまま
 const DEFAULT_MODEL = {
   anthropic: "claude-opus-5",
   openai:    "gpt-4o",
-  gemini:    "gemini-2.5-flash"
+  gemini:    "gemini-3.6-flash"
 };
 
 const LS = { entries:"yorulog.entries.v1", weekly:"yorulog.weekly.v1", cfg:"yorulog.cfg.v1" };
@@ -1008,6 +1013,41 @@ async function callLLM(userPrompt, schema, maxTokens){
   return parseJSON(pick(await res.json()));
 }
 
+/* ── 接続テスト：撮影や記録の前に、キーとモデルが通るか確かめる ── */
+function readSettingsForm(){
+  const pv = $("#setProvider").value;
+  return { provider:pv, model:$("#setModel").value.trim() || DEFAULT_MODEL[pv], key:$("#setKey").value.trim() };
+}
+// Gemini はキーごとに使えるモデルが違うため、エラー時は実際に使える一覧を引いて提示する
+async function listGeminiModels(key){
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}&pageSize=200`);
+  if(!r.ok) return [];
+  const j = await r.json();
+  return (j.models||[])
+    .filter(m => (m.supportedGenerationMethods||[]).includes("generateContent"))
+    .map(m => String(m.name||"").replace(/^models\//,""))
+    .filter(n => /^gemini/.test(n) && !/embedding|aqa/.test(n));
+}
+async function testConnection(){
+  const el = $("#testResult");
+  cfg = readSettingsForm(); save(LS.cfg, cfg);
+  if(!cfg.key){ el.innerHTML = `<div class="err">APIキーを入力してください。</div>`; return; }
+  el.innerHTML = `<p class="muted" style="margin:0 0 12px">接続を確認しています…</p>`;
+  try{
+    await callLLM("これは接続テストです。ok という文字だけを返してください。", S({ok:str},["ok"]), 2000);
+    el.innerHTML = `<div class="ok-box">接続できました。モデル：${esc(cfg.model)}<br>このまま記録を始められます。</div>`;
+  }catch(err){
+    let extra = "";
+    if(cfg.provider === "gemini"){
+      const ms = await listGeminiModels(cfg.key).catch(()=>[]);
+      if(ms.length) extra = `<p class="tiny" style="margin:10px 0 0">このキーで実際に使えるモデルです。押すと設定されます。</p>
+        <div class="chips">${ms.slice(0,12).map(m=>`<button class="chip" data-model="${esc(m)}">${esc(m)}</button>`).join("")}</div>`;
+    }
+    el.innerHTML = `<div class="err">${esc(err.message||String(err))}</div>${extra}`;
+    el.querySelectorAll("[data-model]").forEach(b => b.onclick = () => { $("#setModel").value = b.dataset.model; testConnection(); });
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    8. 画面描画
    ═══════════════════════════════════════════════════════════════ */
@@ -1425,9 +1465,11 @@ $("#threeWords").onclick = () => {
 $("#navWeek").onclick = () => { entries.length>=3 ? runWeekly() : alert("ふりかえりは3日ぶん以上の記録から生成できます。\nサンプル日記の読み込みでもお試しいただけます。"); };
 $("#navSettings").onclick = () => {
   $("#setProvider").value = cfg.provider; $("#setModel").value = cfg.model; $("#setKey").value = cfg.key;
+  $("#testResult").innerHTML = "";
   openModal("#mSettings");
 };
-$("#setProvider").onchange = e => { $("#setModel").value = DEFAULT_MODEL[e.target.value]; };
+$("#setProvider").onchange = e => { $("#setModel").value = DEFAULT_MODEL[e.target.value]; $("#testResult").innerHTML=""; };
+$("#testConn").onclick = testConnection;
 $("#saveSettings").onclick = () => {
   cfg = { provider:$("#setProvider").value, model:$("#setModel").value.trim() || DEFAULT_MODEL[$("#setProvider").value], key:$("#setKey").value.trim() };
   save(LS.cfg, cfg); closeModals();

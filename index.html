@@ -1006,7 +1006,7 @@ async function callLLM(userPrompt, schema, maxTokens){
     const hint =
       (res.status===401 || res.status===403) ? "APIキーが正しくないか、権限がありません。⚙︎ から入力し直してください。" :
       (res.status===404) ? "モデル名が見つかりません。⚙︎ のモデル欄をご確認ください。" :
-      (res.status===429) ? "レート上限に達しました。少し待ってからもう一度お試しください。" :
+      (res.status===429) ? "このモデルの利用枠を超えました。無料枠の対象は Flash / Flash-Lite 系に限られることがあります。下のモデルを切り替えてお試しください。" :
       (res.status>=500) ? "プロバイダ側で一時的な障害が起きています。少し待ってからお試しください。" : "";
     throw new Error(`API エラー ${res.status}${hint ? "　"+hint : ""}\n${String(d).slice(0,200)}`);
   }
@@ -1028,6 +1028,16 @@ async function listGeminiModels(key){
     .map(m => String(m.name||"").replace(/^models\//,""))
     .filter(n => /^gemini/.test(n) && !/embedding|aqa/.test(n));
 }
+// このキーで使えるモデルをボタンで提示する（テスト画面とエラー画面で共用）
+async function geminiModelChips(key){
+  const ms = await listGeminiModels(key).catch(()=>[]);
+  if(!ms.length) return "";
+  const lite = ms.filter(m=>/lite/.test(m)), rest = ms.filter(m=>!/lite/.test(m));
+  const ordered = lite.concat(rest);   // 無料枠が残りやすい Flash-Lite を先に出す
+  return `<p class="tiny" style="margin:12px 0 0">このキーで使えるモデルです。押すと切り替えます（左側ほど無料枠が残りやすい傾向があります）。</p>
+    <div class="chips">${ordered.slice(0,12).map(m=>`<button class="chip" data-model="${esc(m)}">${esc(m)}</button>`).join("")}</div>`;
+}
+
 async function testConnection(){
   const el = $("#testResult");
   cfg = readSettingsForm(); save(LS.cfg, cfg);
@@ -1037,12 +1047,7 @@ async function testConnection(){
     await callLLM("これは接続テストです。ok という文字だけを返してください。", S({ok:str},["ok"]), 2000);
     el.innerHTML = `<div class="ok-box">接続できました。モデル：${esc(cfg.model)}<br>このまま記録を始められます。</div>`;
   }catch(err){
-    let extra = "";
-    if(cfg.provider === "gemini"){
-      const ms = await listGeminiModels(cfg.key).catch(()=>[]);
-      if(ms.length) extra = `<p class="tiny" style="margin:10px 0 0">このキーで実際に使えるモデルです。押すと設定されます。</p>
-        <div class="chips">${ms.slice(0,12).map(m=>`<button class="chip" data-model="${esc(m)}">${esc(m)}</button>`).join("")}</div>`;
-    }
+    const extra = cfg.provider === "gemini" ? await geminiModelChips(cfg.key) : "";
     el.innerHTML = `<div class="err">${esc(err.message||String(err))}</div>${extra}`;
     el.querySelectorAll("[data-model]").forEach(b => b.onclick = () => { $("#setModel").value = b.dataset.model; testConnection(); });
   }
@@ -1326,14 +1331,29 @@ function renderWeek(w, list, s){
 /* ═══════════════════════════════════════════════════════════════
    9. アクション
    ═══════════════════════════════════════════════════════════════ */
-function showError(msg, back){
+function showError(msg, back, retry){
   $("#view-result").innerHTML = `<div class="err">${esc(msg)}</div>
-    <div class="card"><p class="sub">通信かキーの設定を見直して、もう一度お試しください。記録そのものは保存されています。</p>
-    <button class="btn-ghost mt" id="eSet">設定をひらく</button>
-    <button class="btn-ghost mt-s" id="eHome">ホームにもどる</button></div>`;
-  $("#eSet").onclick = () => openModal("#mSettings");
+    <div class="card">
+      <p class="sub">通信かキーの設定を見直して、もう一度お試しください。記録そのものは保存されています。</p>
+      <div id="errModels"></div>
+      <button class="btn-ghost mt" id="eSet">設定をひらく</button>
+      <button class="btn-ghost mt-s" id="eHome">ホームにもどる</button>
+    </div>`;
+  $("#eSet").onclick = () => { $("#navSettings").click(); };
   $("#eHome").onclick = () => { renderHome(); show(back||"home"); };
   show("result");
+  // Gemini はモデルごとに利用枠が違うため、その場で切り替えて再試行できるようにする
+  if(cfg.provider === "gemini" && cfg.key && /40[0-9]|429/.test(msg)){
+    geminiModelChips(cfg.key).then(html => {
+      const box = $("#errModels"); if(!box || !html) return;
+      box.innerHTML = html;
+      box.querySelectorAll("[data-model]").forEach(b => b.onclick = () => {
+        cfg.model = b.dataset.model; save(LS.cfg, cfg);
+        if(typeof retry === "function") retry();
+        else { renderHome(); show("home"); }
+      });
+    });
+  }
 }
 
 async function submitEntry(){
@@ -1349,7 +1369,7 @@ async function submitEntry(){
     weekly = null; save(LS.weekly, null);   // 記録が増えたらふりかえりは作り直す
     renderHome();
     renderResult(e, true);
-  }catch(err){ showError(err.message || String(err)); }
+  }catch(err){ showError(err.message || String(err), "home", submitEntry); }
 }
 
 // 取り込んだ日を、その日の記録だけを渡してあらためて整える
@@ -1362,7 +1382,7 @@ async function deepen(date){
     e.ai = Object.assign({}, e.ai, ai);
     save(LS.entries, entries);
     renderHome(); renderResult(e);
-  }catch(err){ showError(err.message || String(err)); }
+  }catch(err){ showError(err.message || String(err), "home", () => deepen(date)); }
 }
 
 async function runWeekly(force){
@@ -1375,7 +1395,7 @@ async function runWeekly(force){
     const data = await callLLM(buildWeeklyPrompt(list, s), SCHEMA_WEEKLY, 16000);
     weekly = { n:list.length, data }; save(LS.weekly, weekly);
     renderWeek(data, list, s);
-  }catch(err){ showError(err.message || String(err), "home"); }
+  }catch(err){ showError(err.message || String(err), "home", () => runWeekly(true)); }
 }
 
 async function runImport(raw){
@@ -1404,7 +1424,7 @@ async function runImport(raw){
     renderHome();
     if(entries.length >= 3) await runWeekly(true);   // 取り込んだらそのままふりかえりまで走らせる
     else show("home");
-  }catch(err){ showError(err.message || String(err)); }
+  }catch(err){ showError(err.message || String(err), "home", () => runImport(raw)); }
 }
 
 /* ── 審査用サンプル日記（参照2・原文のまま） ── */
